@@ -4,4 +4,4 @@ def get_data():
         # (model_number, model_information), -> model_information = {duration: x, }
         # ...
     ]
-    return ([], [], [], [], [])
+    return (models, [], [], [], [])

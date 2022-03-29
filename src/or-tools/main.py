@@ -7,7 +7,7 @@ from output import print_solution
 
 def main():
     # Get Data
-    (models, productionLines, resources, resourcesNeededForModels, weeklyProduction) = get_data()
+    (models, production_lines, resources, resources_needed_for_models, weekly_production) = get_data()
 
     # Compute horizon (worst case scenario)
     horizon = sum(model[1]['duration'] for model in models)
@@ -34,7 +34,7 @@ def main():
     
     # Constraints
     # Two Jobs on the Same Machine can't overlap
-    for machine in productionLines:
+    for machine in production_lines:
         model.AddNoOverlap(machine_to_intervals[machine])
     
     # Precedence inside a Job
@@ -65,7 +65,7 @@ def main():
     if status == cp_model.OPTIMAL:
         print('Found a Solution')
         # Print Solution
-        print_solution(solver, models, productionLines, all_tasks)
+        print_solution(solver, models, production_lines, all_tasks)
     else:
         print('No Solution Found')
 

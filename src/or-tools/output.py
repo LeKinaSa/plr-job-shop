@@ -1,14 +1,14 @@
 
 import collections
 
-def print_solution(solver, models, productionLines, all_tasks):
+def print_solution(solver, models, production_lines, all_tasks):
     print_objective_function(solver)
-    print_decision_variables(solver, models, productionLines, all_tasks)
+    print_decision_variables(solver, models, production_lines, all_tasks)
 
 def print_objective_function(solver):
     print(f'Optimal Schedule Length: {solver.ObjectiveValue()}')
 
-def print_decision_variables(solver, models, productionLines, all_tasks):
+def print_decision_variables(solver, models, production_lines, all_tasks):
     assigned_task_type = collections.namedtuple('assigned_task_type',
                                                 'start job index duration')
     assigned_jobs_per_machine = collections.defaultdict(list)
@@ -28,7 +28,7 @@ def print_decision_variables(solver, models, productionLines, all_tasks):
 
     # Create per machine output lines
     output = ''
-    for machine in productionLines:
+    for machine in production_lines:
         # Sort by starting time
         assigned_jobs_per_machine[machine].sort()
         sol_line_tasks = 'Machine ' + str(machine) + ': '
