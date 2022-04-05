@@ -1,70 +1,41 @@
 
-import openpyxl as excel
+import json
 
-def get_data(production_time, production_line, capacity, model_totals):
-    # Data Constants
-    FILE = 'data/oi_22_23.xlsx'
-    TIMES_SHEET = 'times'
-    TIMES_MODEL_COLUMN = 1
-    TIMES_TIME_COLUMN  = 2
-    LINES_SHEET = 'lines'
-    LINES_LINE_COLUMN     = 1
-    LINES_CAPACITY_COLUMN = 2
-    LINES_MODELS_COLUMN   = 3
-    TOTAL_SHEET = 'total'
-    TOTAL_MODELS_COLUMN = 1
-    TOTAL_TOTALS_COLUMN = 3
+PRODUCTION_TIME = 'production_time'
+PRODUCTION_LINE = 'production_line'
+CAPACITY        = 'capacity'
+MODEL_TOTALS    = 'total'
+
+def get_data(production_time = PRODUCTION_TIME,
+             production_line = PRODUCTION_LINE,
+             capacity        = CAPACITY,
+             model_totals    = MODEL_TOTALS):
+
+    with open('data/models.json', 'r') as file:
+        models_raw = json.load(file)
+    with open('data/lines.json', 'r') as file:
+        lines_raw = json.load(file)
+
+    if PRODUCTION_TIME == production_time and \
+       PRODUCTION_LINE == production_line and \
+       CAPACITY        == capacity        and \
+       MODEL_TOTALS    == model_totals:
+           return (models_raw, lines_raw)
     
-    # Prepare Data
-    workbook = excel.load_workbook(FILE)
     models = {}
-    lines = {}
-    lines_aux = {}
+    for model, description in models_raw:
+        models[model] = {
+            production_time : description[PRODUCTION_TIME],
+            production_line : description[PRODUCTION_LINE],
+            model_totals    : description[ MODEL_TOTALS  ]
+        }
 
-    # Times
-    sheet  = workbook[TIMES_SHEET]
-    n_rows = sheet.max_row
-    for row in range(2, n_rows + 1):
-        model      = sheet.cell(row, TIMES_MODEL_COLUMN).value
-        time_taken = sheet.cell(row, TIMES_TIME_COLUMN ).value
-        models[model] = { production_time : time_taken, model_totals: 0}
+    lines = {}
+    for line, description in lines_raw:
+        lines[line] = {
+            capacity        : description[   CAPACITY    ]
+        }
     
-    # Lines
-    sheet = workbook[LINES_SHEET]
-    n_rows = sheet.max_row
-    for row in range(2, n_rows + 1):
-        line        = sheet.cell(row, LINES_LINE_COLUMN    ).value
-        capacity    = sheet.cell(row, LINES_CAPACITY_COLUMN).value
-        line_models = sheet.cell(row, LINES_MODELS_COLUMN  ).value
-        line_models = line_models.split(', ')
-        min_max_models = []
-        for line_model in line_models:
-            values = line_model.split('-')
-            min_max_models.append((int(values[0]), int(values[1])))
-        lines[line] = { capacity : capacity }
-        lines_aux[line] = min_max_models
-    
-    # Models
-    for model in models:
-        models[model][production_line] = []
-        for line in lines:
-            for (min_model, max_model) in lines_aux[line]:
-                if min_model <= model <= max_model:
-                    models[model][production_line].append(line)
-    
-    # Totals
-    sheet = workbook[TOTAL_SHEET]
-    n_rows = sheet.max_row
-    for row in range(2, n_rows + 1):
-        model = sheet.cell(row, TOTAL_MODELS_COLUMN).value
-        total = sheet.cell(row, TOTAL_TOTALS_COLUMN).value
-        if model in models:
-            models[model][model_totals] += total
-        else:
-            print(f'Model {model} doesn\'t exist')
-    
-    # Finished
-    workbook.close()
     return (models, lines)
 
 if __name__ == '__main__':    
@@ -75,7 +46,7 @@ if __name__ == '__main__':
     TOTAL           = 'total'
     
     # Get Data
-    (models, lines) = get_data(PRODUCTION_TIME, PRODUCTION_LINE, CAPACITY, TOTAL)
+    (models, lines) = get_data()
     
     # Test
     a = sum(model[PRODUCTION_TIME]*model[TOTAL] for model in models.values())
