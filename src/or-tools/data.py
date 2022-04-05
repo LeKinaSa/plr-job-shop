@@ -3,7 +3,8 @@ import openpyxl as excel
 
 def get_data(production_time = 'production_time',
              production_line = 'production_line',
-             capacity        = 'capacity'):
+             capacity        = 'capacity',
+             model_totals    = 'total'):
     # Data Constants
     FILE = 'data/oi_22_23.xlsx'
     TIMES_SHEET = 'times'
@@ -13,6 +14,9 @@ def get_data(production_time = 'production_time',
     LINES_LINE_COLUMN     = 1
     LINES_CAPACITY_COLUMN = 2
     LINES_MODELS_COLUMN   = 3
+    TOTAL_SHEET = 'total'
+    TOTAL_MODELS_COLUMN = 1
+    TOTAL_TOTALS_COLUMN = 3
     
     # Prepare Data
     workbook = excel.load_workbook(FILE)
@@ -26,7 +30,7 @@ def get_data(production_time = 'production_time',
     for row in range(2, n_rows + 1):
         model      = sheet.cell(row, TIMES_MODEL_COLUMN).value
         time_taken = sheet.cell(row, TIMES_TIME_COLUMN ).value
-        models[model] = { production_time : time_taken}
+        models[model] = { production_time : time_taken, model_totals: 0}
     
     # Lines
     sheet = workbook[LINES_SHEET]
@@ -51,10 +55,21 @@ def get_data(production_time = 'production_time',
                 if min_model <= model <= max_model:
                     models[model][production_line].append(line)
     
+    # Totals
+    sheet = workbook[TOTAL_SHEET]
+    n_rows = sheet.max_row
+    for row in range(2, n_rows + 1):
+        model = sheet.cell(row, TOTAL_MODELS_COLUMN).value
+        total = sheet.cell(row, TOTAL_TOTALS_COLUMN).value
+        if model in models:
+            models[model][model_totals] += total
+        else:
+            print(f'Model {model} doesn\'t exist')
+    
     # Finished
     workbook.close()
     return (models, lines)
 
 if __name__ == '__main__':
     data = get_data()
-    print(data)
+    # print(data)
