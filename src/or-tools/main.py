@@ -6,11 +6,15 @@ from data import get_data
 from output import print_solution
 
 def main():
+    PRODUCTION_TIME = 'production_time'
+    PRODUCTION_LINE = 'production_line'
+    CAPACITY        = 'capacity'
+
     # Get Data
-    (models, production_lines, resources, resources_needed_for_models, weekly_production) = get_data()
+    (models, lines) = get_data(PRODUCTION_TIME, PRODUCTION_LINE, CAPACITY)
 
     # Compute horizon (worst case scenario)
-    horizon = sum(model[1]['duration'] for model in models)
+    horizon = sum(model[1][PRODUCTION_TIME] for model in models)
 
     # Create the Model
     model = cp_model.CpModel()
@@ -22,7 +26,7 @@ def main():
     for job_id, job in models:
         for task_id, task in enumerate(job):
             id = f'-{task_id}-model{job_id}'
-            duration = task['duration']
+            duration = task[PRODUCTION_TIME]
             machine = None # TODO: machine = productionLine
 
             # Decision Variables
@@ -34,7 +38,7 @@ def main():
     
     # Constraints
     # Two Jobs on the Same Machine can't overlap
-    for machine in production_lines:
+    for machine in lines:
         model.AddNoOverlap(machine_to_intervals[machine])
     
     # Precedence inside a Job
@@ -55,11 +59,13 @@ def main():
     status = solver.Solve(model)
 
     # Solver Statistics
-    print('\n Statistics')
-    print('  - conflicts: %i' % solver.NumConflicts())
-    print('  - branches : %i' % solver.NumBranches())
-    print('  - wall time: %f s' % solver.WallTime())
-    print()
+    print('------------------------')
+    print('       Statistics       ')
+    print('------------------------')
+    print(f'  - conflicts: {solver.NumConflicts()}')
+    print(f'  - branches : {solver.NumBranches()}')
+    print(f'  - wall time: {solver.WallTime()} s')
+    print('------------------------')
 
     # Print the results
     if status == cp_model.OPTIMAL:
