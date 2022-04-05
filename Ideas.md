@@ -28,3 +28,13 @@
   - should be produced before its delivery date
     - if this is impossible, it should minimize the delay
 - only one item in each machine at a time
+
+----
+
+### Pre-basic
+- 1 Product (time needed per unit)
+- 1 Production Line (uptime minutes per day)
+- Time period: 1 day.
+
+### Basic
+- Products and 2 Production Lines.

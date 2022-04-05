@@ -9,48 +9,50 @@ def main():
     PRODUCTION_TIME = 'production_time'
     PRODUCTION_LINE = 'production_line'
     CAPACITY        = 'capacity'
+    TOTAL           = 'total'
 
     # Get Data
-    (models, lines) = get_data(PRODUCTION_TIME, PRODUCTION_LINE, CAPACITY)
+    (models, lines) = get_data(PRODUCTION_TIME, PRODUCTION_LINE, CAPACITY, TOTAL)
+    # {130: {'production_time': 17, 'total': 4254, 'production_line': [2]}, (...) }
 
     # Compute horizon (worst case scenario)
-    horizon = sum(model[1][PRODUCTION_TIME] for model in models)
+    horizon = sum(model[PRODUCTION_TIME]*model[TOTAL] for model in models.values())
 
     # Create the Model
     model = cp_model.CpModel()
     task_type = collections.namedtuple('task_type', 'start end interval')
 
     # Create Job Intervals (Decision Variables)
-    all_tasks = []
+    all_tasks = {}
     machine_to_intervals = collections.defaultdict(list)
-    for job_id, job in models:
-        for task_id, task in enumerate(job):
-            id = f'-{task_id}-model{job_id}'
-            duration = task[PRODUCTION_TIME]
-            machine = None # TODO: machine = productionLine
-
-            # Decision Variables
-            start_var = model.NewIntVar(0, horizon, 'start' + id)
-            end_var = model.NewIntVar(0, horizon, 'end' + id)
-            interval_var = model.NewIntervalVar(start_var, duration, end_var, 'interval' + id)
-            all_tasks[job_id, task_id] = task_type(start=start_var, end=end_var, interval=interval_var)
-            machine_to_intervals[machine].append(interval_var)
+    for product in models:
+        id = f'-model{product}'
+        duration = models[product][PRODUCTION_TIME]
+        machine = 1 # TODO: machine = productionLine
+        
+        # Decision Variables
+        start_var = model.NewIntVar(0, horizon, 'start' + id)
+        end_var = model.NewIntVar(0, horizon, 'end' + id)
+        interval_var = model.NewIntervalVar(start_var, duration, end_var, 'interval' + id)
+        all_tasks[product] = task_type(start=start_var, end=end_var, interval=interval_var)
+        machine_to_intervals[machine].append(interval_var)
     
     # Constraints
     # Two Jobs on the Same Machine can't overlap
     for machine in lines:
         model.AddNoOverlap(machine_to_intervals[machine])
     
-    # Precedence inside a Job
-    for job_id, job in models:
-        for task_id in range(len(job) - 1):
-            model.Add(all_tasks[job_id, task_id + 1].start >= all_tasks[job_id, task_id].end)
+    # # Precedence inside a Job
+    # for job_id, job in models:
+    #     for task_id in range(len(job) - 1):
+    #         model.Add(all_tasks[job_id, task_id + 1].start >= all_tasks[job_id, task_id].end)
     
     # Objective Function
     obj_var = model.NewIntVar(0, horizon, 'makespan')
     model.AddMaxEquality(obj_var, [
-        all_tasks[job_id, len(job - 1)].end
-        for job_id, job in enumerate(models)
+        all_tasks[product].end for product in enumerate(models.values())
+        # all_tasks[job_id, len(job - 1)].end
+        # for job_id, job in enumerate(models)
     ]) # TODO: check what this is doing
     model.Minimize(obj_var)
 
@@ -71,7 +73,7 @@ def main():
     if status == cp_model.OPTIMAL:
         print('Found a Solution')
         # Print Solution
-        print_solution(solver, models, production_lines, all_tasks)
+        print_solution(solver, models, lines, all_tasks)
     else:
         print('No Solution Found')
 

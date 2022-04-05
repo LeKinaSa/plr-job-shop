@@ -1,10 +1,7 @@
 
 import openpyxl as excel
 
-def get_data(production_time = 'production_time',
-             production_line = 'production_line',
-             capacity        = 'capacity',
-             model_totals    = 'total'):
+def get_data(production_time, production_line, capacity, model_totals):
     # Data Constants
     FILE = 'data/oi_22_23.xlsx'
     TIMES_SHEET = 'times'
@@ -70,6 +67,16 @@ def get_data(production_time = 'production_time',
     workbook.close()
     return (models, lines)
 
-if __name__ == '__main__':
-    data = get_data()
-    # print(data)
+if __name__ == '__main__':    
+    # Constants
+    PRODUCTION_TIME = 'production_time'
+    PRODUCTION_LINE = 'production_line'
+    CAPACITY        = 'capacity'
+    TOTAL           = 'total'
+    
+    # Get Data
+    (models, lines) = get_data(PRODUCTION_TIME, PRODUCTION_LINE, CAPACITY, TOTAL)
+    
+    # Test
+    a = sum(model[PRODUCTION_TIME]*model[TOTAL] for model in models.values())
+    print(a)
