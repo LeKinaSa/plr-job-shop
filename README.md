@@ -27,6 +27,19 @@ Resources arrival and product expedition dates may also be taken into considerat
 
 - weeklyProduction(week, [(modelId, lineId, amount), ...], [(lineId, extraHours), ...])
 
+## Input (Data)
+- Excel with information regarding:
+    - Model information: time and resources' amounts needed and production lines where it can be produced; number of units to be produced.
+    - Production Lines: number of hours of uptime per week and number of employees
+    - (Resources: stock and time of arrival)
+
+## Output (Results)
+- Optimal Schedule
+- Delay per model (>=0)
+- Resources Used / Remaining
+- Number of overtime hours (>= 0)
+
+
 ## Group
 
 | Group Member | Up Number |
