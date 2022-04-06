@@ -3,78 +3,106 @@ import collections
 from ortools.sat.python import cp_model
 
 from data import get_data
-from output import print_solution
+from output import IntermediateSolutionPrinter as SolutionPrinter, print_statistics, print_results
+from constants import TASK_DURATION, TASK_MACHINE
 
-def main():
-    DURATION = 'production_time'
-    MACHINES = 'production_line'
-    CAPACITY = 'capacity'
-    TOTAL    = 'total'
-
+def jobshop():
     # Get Data
-    (products, machines) = get_data(DURATION, MACHINES, CAPACITY, TOTAL)
+    (jobs, machines) = get_data()
 
     # Compute horizon (worst case scenario)
-    horizon = sum(model[DURATION]*model[TOTAL] for model in products.values())
+    horizon = 0
+    for job in jobs:
+        for task in job:
+            max_task_duration = 0
+            for alternative in task:
+                max_task_duration = max(max_task_duration, alternative[0])
+            horizon += max_task_duration
 
     # Create the Model
     model = cp_model.CpModel()
-    task_type = collections.namedtuple('task_type', 'start end interval')
+
+    # Global storage of variables.
+    intervals_per_resources = collections.defaultdict(list)
+    starts = {}  # indexed by (job_id, task_id)
+    presences = {}  # indexed by (job_id, task_id, alt_id)
+    job_ends = []
 
     # Create Job Intervals (Decision Variables)
-    all_tasks = {}
-    machine_to_intervals = collections.defaultdict(list)
-    for product in products:
-        id = f'-{product}'
-        duration = products[product][DURATION]
-        machine = 1 # TODO
+    for job_id, job in enumerate(jobs):
+        previous_end = None
 
-        # Decision Variables
-        start_var = model.NewIntVar(0, horizon, 'start' + id)
-        end_var = model.NewIntVar(0, horizon, 'end' + id)
-        interval_var = model.NewIntervalVar(start_var, duration, end_var, 'interval' + id)
-        all_tasks[product] = task_type(start=start_var, end=end_var, interval=interval_var)
-        machine_to_intervals[machine].append(interval_var)
-    
-    # Constraints
-    # Two Jobs on the Same Machine can't overlap
-    for machine in machines:
-        model.AddNoOverlap(machine_to_intervals[machine])
-    
-    # # Precedence inside a Job
-    # for job_id, job in models:
-    #     for task_id in range(len(job) - 1):
-    #         model.Add(all_tasks[job_id, task_id + 1].start >= all_tasks[job_id, task_id].end)
-    
+        for task_id, task in enumerate(job):
+            min_duration = min([alt_task[TASK_DURATION] for alt_task in task])
+            max_duration = max([alt_task[TASK_DURATION] for alt_task in task])
+
+            # Create Main Task Intervals for each Task
+            start    = model.NewIntVar(0           , horizon     , f'start_j{job_id}_t{task_id}')
+            duration = model.NewIntVar(min_duration, max_duration, f'duration_j{job_id}_t{task_id}')
+            end      = model.NewIntVar(0           , horizon     , f'end_j{job_id}_t{task_id}')
+            interval = model.NewIntervalVar( start, duration, end, f'interval_j{job_id}_t{task_id}')
+
+            # Store the Start
+            starts[(job_id, task_id)] = start
+
+            # Constraints: Add Job Precedence
+            if previous_end is not None:
+                model.Add(start >= previous_end)
+            previous_end = end
+
+            # Create Alternative Intervals for the Task
+            if len(task) > 1:
+                l_presences = []
+                for alt_id, alt_task in enumerate(task):
+                    l_duration = alt_task[TASK_DURATION]
+                    l_presence = model.NewBoolVar(            f'presence_j{job_id}_t{task_id}_a{alt_id}')
+                    l_start    = model.NewIntVar (0, horizon, f'start_j{job_id}_t{task_id}_a{alt_id}')
+                    l_end      = model.NewIntVar (0, horizon, f'end_j{job_id}_t{task_id}_a{alt_id}')
+                    l_interval = model.NewOptionalIntervalVar(
+                        l_start, l_duration, l_end, l_presence, f'interval_j{job_id}_t{task_id}_a{alt_id}')
+
+                    l_presences.append(l_presence)
+
+                    # Link the Main Variables with the Alternative Ones
+                    model.Add(start    == l_start   ).OnlyEnforceIf(l_presence)
+                    model.Add(duration == l_duration).OnlyEnforceIf(l_presence)
+                    model.Add(end      == l_end     ).OnlyEnforceIf(l_presence)
+
+                    # Add the Alternative Interval to the Correct Machine
+                    intervals_per_resources[alt_task[TASK_MACHINE]].append(l_interval)
+
+                    # Store the Presence
+                    presences[(job_id, task_id, alt_id)] = l_presence
+
+                # Only Select 1 Alternative per Task
+                model.AddExactlyOne(l_presences)
+            else:
+                # Only 1 Possible Alternative
+                alt_task = task[0]
+                intervals_per_resources[alt_task[TASK_MACHINE]].append(interval)
+                presences[(job_id, task_id, 0)] = model.NewConstant(1)
+
+        # Store the End
+        job_ends.append(previous_end)
+
+    # Constraints: Two Jobs on the Same Machine can't overlap
+    for intervals in intervals_per_resources.values():
+        if len(intervals) > 1:
+            model.AddNoOverlap(intervals)
+
     # Objective Function
-    obj_var = model.NewIntVar(0, horizon, 'makespan')
-    model.AddMaxEquality(obj_var, [
-        all_tasks[product].end for product in products
-        # all_tasks[job_id, len(job - 1)].end
-        # for job_id, job in enumerate(models)
-    ]) # TODO: check what this is doing
-    model.Minimize(obj_var)
+    makespan = model.NewIntVar(0, horizon, 'makespan')
+    model.AddMaxEquality(makespan, job_ends)
+    model.Minimize(makespan)
 
     # Create the Solver and Solve
     solver = cp_model.CpSolver()
-    status = solver.Solve(model)
-
-    # Solver Statistics
-    print('------------------------')
-    print('       Statistics       ')
-    print('------------------------')
-    print(f'  - conflicts: {solver.NumConflicts()}')
-    print(f'  - branches : {solver.NumBranches()}')
-    print(f'  - wall time: {solver.WallTime()} s')
-    print('------------------------')
-
-    # Print the results
-    if status == cp_model.OPTIMAL:
-        print('Found a Solution')
-        # Print Solution
-        print_solution(solver, products, machines, all_tasks)
-    else:
-        print('No Solution Found')
+    solution_printer = SolutionPrinter()
+    status = solver.Solve(model, solution_printer)
+    
+    # Print Results
+    print_statistics()
+    print_results(solver, status, jobs, starts, presences)
 
 if __name__ == '__main__':
-    main()
+    jobshop()
