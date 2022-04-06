@@ -6,16 +6,16 @@ from data import get_data
 from output import print_solution
 
 def main():
-    PRODUCTION_TIME = 'production_time'
-    PRODUCTION_LINE = 'production_line'
-    CAPACITY        = 'capacity'
-    TOTAL           = 'total'
+    DURATION = 'production_time'
+    MACHINES = 'production_line'
+    CAPACITY = 'capacity'
+    TOTAL    = 'total'
 
     # Get Data
-    (models, lines) = get_data(PRODUCTION_TIME, PRODUCTION_LINE, CAPACITY, TOTAL)
+    (products, machines) = get_data(DURATION, MACHINES, CAPACITY, TOTAL)
 
     # Compute horizon (worst case scenario)
-    horizon = sum(model[PRODUCTION_TIME]*model[TOTAL] for model in models.values())
+    horizon = sum(model[DURATION]*model[TOTAL] for model in products.values())
 
     # Create the Model
     model = cp_model.CpModel()
@@ -24,11 +24,11 @@ def main():
     # Create Job Intervals (Decision Variables)
     all_tasks = {}
     machine_to_intervals = collections.defaultdict(list)
-    for product in models:
+    for product in products:
         id = f'-{product}'
-        duration = models[product][PRODUCTION_TIME]
-        machine = 1 # TODO: machine = productionLine
-        
+        duration = products[product][DURATION]
+        machine = 1 # TODO
+
         # Decision Variables
         start_var = model.NewIntVar(0, horizon, 'start' + id)
         end_var = model.NewIntVar(0, horizon, 'end' + id)
@@ -38,7 +38,7 @@ def main():
     
     # Constraints
     # Two Jobs on the Same Machine can't overlap
-    for machine in lines:
+    for machine in machines:
         model.AddNoOverlap(machine_to_intervals[machine])
     
     # # Precedence inside a Job
@@ -49,7 +49,7 @@ def main():
     # Objective Function
     obj_var = model.NewIntVar(0, horizon, 'makespan')
     model.AddMaxEquality(obj_var, [
-        all_tasks[product].end for product in models
+        all_tasks[product].end for product in products
         # all_tasks[job_id, len(job - 1)].end
         # for job_id, job in enumerate(models)
     ]) # TODO: check what this is doing
@@ -72,7 +72,7 @@ def main():
     if status == cp_model.OPTIMAL:
         print('Found a Solution')
         # Print Solution
-        print_solution(solver, models, lines, all_tasks)
+        print_solution(solver, products, machines, all_tasks)
     else:
         print('No Solution Found')
 
