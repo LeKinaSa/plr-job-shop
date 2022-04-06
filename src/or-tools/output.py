@@ -16,16 +16,16 @@ class IntermediateSolutionPrinter(CpSolverSolutionCallback):
 
 def print_statistics(solver, status):
     # Solver Statistics
-    print('------------------------')
-    print('       Statistics       ')
-    print('------------------------')
+    print('--------------------------------')
+    print('           Statistics           ')
+    print('--------------------------------')
     print(f'  - conflicts: {solver.NumConflicts()}')
     print(f'  - branches : {solver.NumBranches()}')
-    print(f'  - wall time: {solver.WallTime()} s')
-    print('------------------------')
+    print(f'  - wall time: {solver.WallTime():8f} s')
+    print('--------------------------------')
     print(f'  Solve status: {solver.StatusName(status)}')
     print(f'  Optimal objective value: {solver.ObjectiveValue()}')
-    print('------------------------')
+    print('--------------------------------')
     
 def print_results(solver, status, jobs, starts, presences):
     # Print the results
@@ -38,13 +38,13 @@ def print_results(solver, status, jobs, starts, presences):
 
 def print_optimal_solution(solver, jobs, starts, presences):
     # Print Final Solution
-    for job_id, job in enumerate(jobs):
+    for job_id, job in jobs.items():
         print(f'Job {job_id}:')
         for task_id, task in enumerate(job):
             start_value = solver.Value(starts[(job_id, task_id)])
             (machine, duration, selected) = (-1, -1, -1)
             
-            for alt_id, alt_task in range(task):
+            for alt_id, alt_task in enumerate(task):
                 if solver.Value(presences[(job_id, task_id, alt_id)]):
                     selected = alt_id
                     duration = alt_task[TASK_DURATION]

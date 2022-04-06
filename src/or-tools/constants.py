@@ -1,2 +1,2 @@
-TASK_MACHINE = 'machine'
-TASK_DURATION = 'duration'
+TASK_MACHINE  = 0
+TASK_DURATION = 1

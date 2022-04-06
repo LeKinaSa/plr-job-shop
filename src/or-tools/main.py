@@ -8,15 +8,13 @@ from constants import TASK_DURATION, TASK_MACHINE
 
 def jobshop():
     # Get Data
-    (jobs, machines) = get_data()
+    jobs = get_data()
 
     # Compute horizon (worst case scenario)
     horizon = 0
-    for job in jobs:
+    for job in jobs.values():
         for task in job:
-            max_task_duration = 0
-            for alternative in task:
-                max_task_duration = max(max_task_duration, alternative[0])
+            max_task_duration = max([alt_task[TASK_DURATION] for alt_task in task])
             horizon += max_task_duration
 
     # Create the Model
@@ -24,12 +22,12 @@ def jobshop():
 
     # Global storage of variables.
     intervals_per_resources = collections.defaultdict(list)
-    starts = {}  # indexed by (job_id, task_id)
+    starts    = {}  # indexed by (job_id, task_id)
     presences = {}  # indexed by (job_id, task_id, alt_id)
-    job_ends = []
+    job_ends  = []
 
     # Create Job Intervals (Decision Variables)
-    for job_id, job in enumerate(jobs):
+    for job_id, job in jobs.items():
         previous_end = None
 
         for task_id, task in enumerate(job):
@@ -101,7 +99,7 @@ def jobshop():
     status = solver.Solve(model, solution_printer)
     
     # Print Results
-    print_statistics()
+    print_statistics(solver, status)
     print_results(solver, status, jobs, starts, presences)
 
 if __name__ == '__main__':
