@@ -1,15 +1,18 @@
 
 import json
 
-from constants import TASK_DURATION, TASK_MACHINE
+from constants import TASK_DURATION, TASK_MACHINE, DataDifficulty
 
 PRODUCTION_TIME = 'production_time'
 PRODUCTION_LINE = 'production_line'
 CAPACITY        = 'capacity'
 MODEL_TOTALS    = 'total'
 
-def get_data():
-    return get_data_easy()
+def get_data(data_difficulty=DataDifficulty.EASY):
+    if data_difficulty == DataDifficulty.EASY:
+        return get_data_easy()
+    if data_difficulty == DataDifficulty.HARD:
+        return get_data_hard()
 
 def get_data_easy():
     jobs = {  # task = (machine_id, processing_time)
@@ -70,5 +73,5 @@ def get_data_hard():
 
 if __name__ == '__main__':
     # Get Data
-    jobs = get_data_hard()
+    jobs = get_data(DataDifficulty.HARD)
     print(jobs)

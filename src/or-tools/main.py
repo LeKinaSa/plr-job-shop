@@ -4,11 +4,11 @@ from ortools.sat.python import cp_model
 
 from data import get_data
 from output import IntermediateSolutionPrinter as SolutionPrinter, print_statistics, print_results
-from constants import TASK_DURATION, TASK_MACHINE
+from constants import TASK_DURATION, TASK_MACHINE, DataDifficulty
 
 def jobshop():
     # Get Data
-    jobs = get_data()
+    jobs = get_data(DataDifficulty.EASY)
 
     # Compute horizon (worst case scenario)
     horizon = 0
