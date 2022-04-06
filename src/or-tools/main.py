@@ -13,7 +13,6 @@ def main():
 
     # Get Data
     (models, lines) = get_data(PRODUCTION_TIME, PRODUCTION_LINE, CAPACITY, TOTAL)
-    # {130: {'production_time': 17, 'total': 4254, 'production_line': [2]}, (...) }
 
     # Compute horizon (worst case scenario)
     horizon = sum(model[PRODUCTION_TIME]*model[TOTAL] for model in models.values())
@@ -26,7 +25,7 @@ def main():
     all_tasks = {}
     machine_to_intervals = collections.defaultdict(list)
     for product in models:
-        id = f'-model{product}'
+        id = f'-{product}'
         duration = models[product][PRODUCTION_TIME]
         machine = 1 # TODO: machine = productionLine
         
@@ -50,7 +49,7 @@ def main():
     # Objective Function
     obj_var = model.NewIntVar(0, horizon, 'makespan')
     model.AddMaxEquality(obj_var, [
-        all_tasks[product].end for product in enumerate(models.values())
+        all_tasks[product].end for product in models
         # all_tasks[job_id, len(job - 1)].end
         # for job_id, job in enumerate(models)
     ]) # TODO: check what this is doing

@@ -1,6 +1,11 @@
 
 import collections
 
+PRODUCTION_TIME = 'production_time'
+PRODUCTION_LINE = 'production_line'
+CAPACITY        = 'capacity'
+MODEL_TOTALS    = 'total'
+
 def print_solution(solver, models, production_lines, all_tasks):
     print_objective_function(solver)
     print_decision_variables(solver, models, production_lines, all_tasks)
@@ -14,17 +19,16 @@ def print_decision_variables(solver, models, production_lines, all_tasks):
     assigned_jobs_per_machine = collections.defaultdict(list)
 
     # Create the list of assigned tasks per machine
-    for job_id, job in models:
-        for task_id, task in enumerate(job):
-            machine = None # TODO: machine = productionLine
-            
-            assigned_jobs_per_machine[machine].append(
-                assigned_task_type(start=solver.Value(all_tasks[job_id, task_id].start),
-                                   job=job_id,
-                                   index=task_id,
-                                   duration=task['duration']
-                )
+    for model in models:
+        machine = 1 # TODO: machine = productionLine
+        
+        assigned_jobs_per_machine[machine].append(
+            assigned_task_type(start=solver.Value(all_tasks[model].start),
+                                job=model,
+                                index=0,
+                                duration=models[model][PRODUCTION_TIME]
             )
+        )
 
     # Create per machine output lines
     output = ''
