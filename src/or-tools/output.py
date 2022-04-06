@@ -1,59 +1,56 @@
 
-import collections
+from ortools.sat.python.cp_model import CpSolverSolutionCallback, OPTIMAL as OPTIMAL_SOLUTION
 
-PRODUCTION_TIME = 'production_time'
-PRODUCTION_LINE = 'production_line'
-CAPACITY        = 'capacity'
-MODEL_TOTALS    = 'total'
+from constants import TASK_MACHINE, TASK_DURATION
 
-def print_solution(solver, models, production_lines, all_tasks):
-    print_objective_function(solver)
-    print_decision_variables(solver, models, production_lines, all_tasks)
+class IntermediateSolutionPrinter(CpSolverSolutionCallback):
+    """Print intermediate solutions"""
+    def __init__(self):
+        CpSolverSolutionCallback.__init__(self)
+        self.__solution_count = 0
 
-def print_objective_function(solver):
-    print(f'Optimal Schedule Length: {solver.ObjectiveValue()}')
+    def on_solution_callback(self):
+        """Called at each new solution"""
+        print(f'Solution {self.__solution_count}, time = {self.WallTime()} s, objective = {self.ObjectiveValue()}')
+        self.__solution_count += 1
 
-def print_decision_variables(solver, models, production_lines, all_tasks):
-    assigned_task_type = collections.namedtuple('assigned_task_type',
-                                                'start job index duration')
-    assigned_jobs_per_machine = collections.defaultdict(list)
-
-    # Create the list of assigned tasks per machine
-    for model in models:
-        machine = 1 # TODO: machine = productionLine
-        
-        assigned_jobs_per_machine[machine].append(
-            assigned_task_type(start=solver.Value(all_tasks[model].start),
-                                job=model,
-                                index=0,
-                                duration=models[model][PRODUCTION_TIME]
-            )
-        )
-
-    # Create per machine output lines
-    output = ''
-    for machine in production_lines:
-        # Sort by starting time
-        assigned_jobs_per_machine[machine].sort()
-        sol_line_tasks = 'Machine ' + str(machine) + ': '
-        sol_line = '           '
-
-        for assigned_task in assigned_jobs_per_machine[machine]:
-            name = 'job_%i_task_%i' % (assigned_task.job,
-                                        assigned_task.index)
-            # Add spaces to output to align columns
-            sol_line_tasks += '%-15s' % name
-
-            start = assigned_task.start
-            duration = assigned_task.duration
-            sol_tmp = '[%i,%i]' % (start, start + duration)
-            # Add spaces to output to align columns
-            sol_line += '%-15s' % sol_tmp
-
-        sol_line += '\n'
-        sol_line_tasks += '\n'
-        output += sol_line_tasks
-        output += sol_line
+def print_statistics(solver, status):
+    # Solver Statistics
+    print('--------------------------------')
+    print('           Statistics           ')
+    print('--------------------------------')
+    print(f'  - conflicts: {solver.NumConflicts()}')
+    print(f'  - branches : {solver.NumBranches()}')
+    print(f'  - wall time: {solver.WallTime():8f} s')
+    print('--------------------------------')
+    print(f'  Solve status: {solver.StatusName(status)}')
+    print(f'  Optimal objective value: {solver.ObjectiveValue()}')
+    print('--------------------------------')
     
-    # Print Decision Variables
-    print(output)
+def print_results(solver, status, jobs, starts, presences):
+    # Print the results
+    if status == OPTIMAL_SOLUTION:
+        print('Found a Solution')
+        # Print Solution
+        print_optimal_solution(solver, jobs, starts, presences)
+    else:
+        print('No Solution Found')
+
+def print_optimal_solution(solver, jobs, starts, presences):
+    # Print Final Solution
+    for job_id, job in jobs.items():
+        print(f'Job {job_id}:')
+        for task_id, task in enumerate(job):
+            start_value = solver.Value(starts[(job_id, task_id)])
+            (machine, duration, selected) = (-1, -1, -1)
+            
+            for alt_id, alt_task in enumerate(task):
+                if solver.Value(presences[(job_id, task_id, alt_id)]):
+                    selected = alt_id
+                    duration = alt_task[TASK_DURATION]
+                    machine  = alt_task[TASK_MACHINE]
+            
+            print(f'  task_{task_id} starts at {start_value} (alt {selected}, machine {machine}, duration {duration})')
+
+if __name__ == '__main__':
+    print('Configured')

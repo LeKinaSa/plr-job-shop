@@ -1,53 +1,78 @@
 
-import json
+import json, math
+
+from constants import TASK_DURATION, TASK_MACHINE, DataDifficulty
 
 PRODUCTION_TIME = 'production_time'
 PRODUCTION_LINE = 'production_line'
 CAPACITY        = 'capacity'
 MODEL_TOTALS    = 'total'
 
-def get_data(production_time = PRODUCTION_TIME,
-             production_line = PRODUCTION_LINE,
-             capacity        = CAPACITY,
-             model_totals    = MODEL_TOTALS):
+def get_data(data_difficulty=DataDifficulty.EASY):
+    if data_difficulty == DataDifficulty.EASY:
+        return get_data_easy()
+    if data_difficulty == DataDifficulty.HARD:
+        return get_data_hard()
 
+def get_data_easy():
+    jobs = {  # task = (machine_id, processing_time)
+        0: [  # Job 0
+            [(0, 3), (1, 1), (2, 5)],  # task 0 with 3 alternatives
+            [(0, 2), (1, 4), (2, 6)],  # task 1 with 3 alternatives
+            [(0, 2), (1, 3), (2, 1)],  # task 2 with 3 alternatives
+        ],
+        1: [  # Job 1
+            [(0, 2), (1, 3), (2, 4)],
+            [(0, 1), (1, 5), (2, 4)],
+            [(0, 2), (1, 1), (2, 4)],
+        ],
+        2: [  # Job 2
+            [(0, 2), (1, 1), (2, 4)],
+            [(0, 2), (1, 3), (2, 4)],
+            [(0, 3), (1, 1), (2, 5)],
+        ]
+    }
+    return jobs
+
+def get_data_hard():
     with open('data/models.json', 'r') as file:
-        models_raw = json.load(file)
+        models = json.load(file)
+    del_models = []
+    for model_id, model in models.items():
+        if model[MODEL_TOTALS] == 0:
+            del_models.append(model_id)
+    for del_model in del_models:
+        del models[del_model]
+    
     with open('data/lines.json', 'r') as file:
         lines_raw = json.load(file)
-
-    if PRODUCTION_TIME == production_time and \
-       PRODUCTION_LINE == production_line and \
-       CAPACITY        == capacity        and \
-       MODEL_TOTALS    == model_totals:
-           return (models_raw, lines_raw)
-    
-    models = {}
-    for model, description in models_raw:
-        models[model] = {
-            production_time : description[PRODUCTION_TIME],
-            production_line : description[PRODUCTION_LINE],
-            model_totals    : description[ MODEL_TOTALS  ]
-        }
-
     lines = {}
-    for line, description in lines_raw:
-        lines[line] = {
-            capacity        : description[   CAPACITY    ]
-        }
+    for line_id, line in lines_raw.items():
+        lines[int(line_id)] = line
     
-    return (models, lines)
+    # Each Job has 3 Tasks
+    # Task 0 - before the resources arrive
+    # Task 1 - production (may have alternative tasks in different machines)
+    # Task 2 - delivery deadline
+    
+    jobs = {}
+    for model_id, model in models.items():
+        tasks = []
+        alternative_tasks = []
+    
+        for production_line in model[PRODUCTION_LINE]:
+            t = [0, 0]
+            task_duration = model[MODEL_TOTALS] * model[PRODUCTION_TIME] / lines[production_line][CAPACITY]
+            t[TASK_MACHINE ] = production_line
+            t[TASK_DURATION] = math.ceil(task_duration)
+            alternative_tasks.append(tuple(t))
 
-if __name__ == '__main__':    
-    # Constants
-    PRODUCTION_TIME = 'production_time'
-    PRODUCTION_LINE = 'production_line'
-    CAPACITY        = 'capacity'
-    TOTAL           = 'total'
-    
+        tasks.append(alternative_tasks)
+        
+        jobs[model_id] = tasks
+    return jobs
+
+if __name__ == '__main__':
     # Get Data
-    (models, lines) = get_data()
-    
-    # Test
-    a = sum(model[PRODUCTION_TIME]*model[TOTAL] for model in models.values())
-    print(a)
+    jobs = get_data(DataDifficulty.HARD)
+    print(jobs)
