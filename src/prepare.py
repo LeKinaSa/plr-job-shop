@@ -40,14 +40,14 @@ def get_data():
     n_rows = sheet.max_row
     for row in range(2, n_rows + 1):
         line        = sheet.cell(row, LINES_LINE_COLUMN    ).value
-        CAPACITY    = sheet.cell(row, LINES_CAPACITY_COLUMN).value
+        capacity    = sheet.cell(row, LINES_CAPACITY_COLUMN).value
         line_models = sheet.cell(row, LINES_MODELS_COLUMN  ).value
         line_models = line_models.split(', ')
         min_max_models = []
         for line_model in line_models:
             values = line_model.split('-')
             min_max_models.append((int(values[0]), int(values[1])))
-        lines[line] = { CAPACITY : CAPACITY }
+        lines[line] = { CAPACITY : capacity }
         lines_aux[line] = min_max_models
     
     # Models
@@ -86,7 +86,7 @@ def save_ortools(models, lines):
     with open(LINES_FILE , 'w') as file:
         json.dump(lines, file)
     
-def save_prolog(models, lines):
+def save_prolog(models, production_lines):
     DATA_FILE = 'data/fab.pl'
 
     lines = [
@@ -100,6 +100,14 @@ def save_prolog(models, lines):
         line = f'model({model}, {production_time}, {total}, {production_line}).\n'
         lines.append(line)
     
+    lines.append('\n% line(+LineId, +Capacity)\n')
+
+    for production_line, description in production_lines.items():
+        capacity = description[CAPACITY]
+
+        line = f'line({production_line}, {capacity}).\n'
+        lines.append(line)
+    
     with open(DATA_FILE, 'w') as file:
         file.writelines(lines)
     return
@@ -111,4 +119,3 @@ if __name__ == '__main__':
     
     # Test
     print('Done.')
-    
