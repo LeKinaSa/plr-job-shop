@@ -1,5 +1,5 @@
 
-import json
+import json, math
 
 from constants import TASK_DURATION, TASK_MACHINE, DataDifficulty
 
@@ -62,8 +62,9 @@ def get_data_hard():
     
         for production_line in model[PRODUCTION_LINE]:
             t = [0, 0]
+            task_duration = model[MODEL_TOTALS] * model[PRODUCTION_TIME] / lines[production_line][CAPACITY]
             t[TASK_MACHINE ] = production_line
-            t[TASK_DURATION] = model[MODEL_TOTALS] * model[PRODUCTION_TIME] / lines[production_line][CAPACITY]
+            t[TASK_DURATION] = math.ceil(task_duration)
             alternative_tasks.append(tuple(t))
 
         tasks.append(alternative_tasks)
