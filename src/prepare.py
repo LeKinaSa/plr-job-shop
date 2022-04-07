@@ -1,6 +1,9 @@
 
 import openpyxl as excel
-import json
+import json, math
+
+TASK_MACHINE  = 0
+TASK_DURATION = 1
 
 PRODUCTION_TIME = 'production_time'
 PRODUCTION_LINE = 'production_line'
@@ -89,28 +92,45 @@ def save_ortools(models, lines):
 def save_prolog(models, production_lines):
     DATA_FILE = 'data/fab.pl'
 
-    lines = [
-        '% model(+ModelId, +ProductionTime, +TotalProduction, +ProductionLines)\n'
-    ]
-    for model, description in models.items():
-        production_time = description[PRODUCTION_TIME]
-        total           = description[MODEL_TOTALS   ]
-        production_line = description[PRODUCTION_LINE]
-
-        line = f'model({model}, {production_time}, {total}, {production_line}).\n'
-        lines.append(line)
-    
-    lines.append('\n% line(+LineId, +Capacity)\n')
-
-    for production_line, description in production_lines.items():
-        capacity = description[CAPACITY]
-
-        line = f'line({production_line}, {capacity}).\n'
-        lines.append(line)
+    lines = get_prolog_lines(models, production_lines)
     
     with open(DATA_FILE, 'w') as file:
         file.writelines(lines)
     return
+
+def get_prolog_lines(models, production_lines):
+    del_models = []
+    for model_id, model in models.items():
+        if model[MODEL_TOTALS] == 0:
+            del_models.append(model_id)
+    for del_model in del_models:
+        del models[del_model]
+    
+    # Each Job has 3 Tasks
+    # Task 0 - before the resources arrive
+    # Task 1 - production (may have alternative tasks in different machines)
+    # Task 2 - delivery deadline
+    
+    lines = [
+        '% job(+JobId, +Tasks) | Tasks = [Task] | Task = [AltTask] | AltTask = MachineId-Duration\n'
+    ]
+    
+    for model_id, model in models.items():
+        tasks = []
+        alternative_tasks = []
+        
+        for production_line in model[PRODUCTION_LINE]:
+            t = [0, 0]
+            task_duration = model[MODEL_TOTALS] * model[PRODUCTION_TIME] / production_lines[production_line][CAPACITY]
+            t[TASK_MACHINE ] = production_line
+            t[TASK_DURATION] = math.ceil(task_duration)
+            alternative_tasks.append(t)
+        
+        tasks.append(alternative_tasks)
+        
+        line = f'job({model_id}, {tasks}).\n'
+        lines.append(line)
+    return lines
 
 if __name__ == '__main__':
     # Get Data
