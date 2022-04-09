@@ -5,10 +5,22 @@
 :- ensure_loaded('output.pl').
 :- ensure_loaded('constraints.pl').
 
+% jobshop -> job shop with unlimited time span
 jobshop :-
-    % Tasks (Data)
+    % Jobs and Horizon (Data)
     get_jobs(Jobs),
     get_max_timespan(Jobs, Horizon),
+    jobshop(Jobs, Horizon).
+
+% jobshop(+Horizon) -> job shop with limited time span
+jobshop(Horizon) :-
+    % Jobs (Data)
+    get_jobs(Jobs),
+    jobshop(Jobs, Horizon).
+
+% jobshop(+Jobs, +Horizon) -> job shop solver
+jobshop(Jobs, Horizon) :-
+    % Tasks (Data)
     get_tasks(Jobs, Tasks),
     length(Tasks , N),
 
