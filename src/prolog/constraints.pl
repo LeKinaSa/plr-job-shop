@@ -26,6 +26,7 @@ only_one_task_per_machine_at_a_time([_-(Machine-_) | Tasks], [Start | Starts], [
     only_one_task_per_machine_at_a_time(Tasks, Starts, Ends, Chosen).
 
 % no_other_task(+Machine, +Start-End, +Tasks, +Starts, +Ends, +Chosen)
+no_other_task(_, _, [], [], [], []).
 no_other_task(TaskMachine, Interval, [_ | Tasks], [_ | Starts], [_ | Ends], [YesOrNo | Chosen]) :-
     YesOrNo #= 0, % Task was not Chosen
     no_other_task(TaskMachine, Interval, Tasks, Starts, Ends, Chosen).
