@@ -2,6 +2,7 @@
 :-use_module(library(clpfd)).
 
 :- ensure_loaded('data.pl').
+:- ensure_loaded('output.pl').
 :- ensure_loaded('constraints.pl').
 
 jobshop :-
@@ -26,6 +27,8 @@ jobshop :-
     % Solve
     append(Start  , End   , VarsAux),
     append(VarsAux, Chosen, Vars   ),
-    labeling([], Vars).
+    labeling([], Vars),
+    get_latest_finish(End, 0, ObjFunc),
 
     % Print
+    print(Tasks, Start, End, Chosen, Horizon, ObjFunc).
