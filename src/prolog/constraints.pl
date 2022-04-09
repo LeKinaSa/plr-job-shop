@@ -47,4 +47,21 @@ no_other_task(TaskMachine, StartTask-EndTask, [_-(Machine-_) | Tasks], [Start | 
 %%%%%%%%%%%%%%%%%%%% 1 Alternative Task %%%%%%%%%%%%%%%%%%%%
 
 % only_one_chosen_alternative_task(+Tasks, +Chosen)
-only_one_chosen_alternative_task(_, _).
+only_one_chosen_alternative_task(Tasks, Chosen) :-
+    add_chosen_alternative_tasks(Tasks, Chosen, [], Sum),
+    only_one_chosen(Sum).
+
+% add_chosen_alternative_tasks(+Tasks, +Chosen, +Temp, -Sum)
+add_chosen_alternative_tasks([], [], Sum, Sum).
+add_chosen_alternative_tasks([(_-_-Id)-_ | Tasks], [YesOrNo | Chosen], [Last | List], Sum) :-
+    Id > 0,
+    ModifiedLast #= Last + YesOrNo,
+    add_chosen_alternative_tasks(Tasks, Chosen, [ModifiedLast | List], Sum).
+add_chosen_alternative_tasks([(_-_-0)-_ | Tasks], [YesOrNo | Chosen], List, Sum) :-
+    add_chosen_alternative_tasks(Tasks, Chosen, [YesOrNo | List], Sum).
+
+% only_one_chosen(+Sum)
+only_one_chosen([]).
+only_one_chosen([_-N | Sum]) :-
+    N #= 1,
+    only_one_chosen(Sum).
