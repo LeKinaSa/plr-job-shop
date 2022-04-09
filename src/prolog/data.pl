@@ -2,14 +2,14 @@
 :- ensure_loaded('../../data/fab-easy.pl').
 :- ensure_loaded('helpers.pl').
 
-%%%%%%%%%%%%%%%%%%%%  JOBS   %%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%        JOBS        %%%%%%%%%%%%%%%%%%%%
 
 % get_jobs(-Jobs)
 % Jobs = [job_id - tasks] ; tasks = [task] ; task = [alternative_task] ; alternative_task = machine_id - duration
 get_jobs(Jobs) :-
     findall(Job-Tasks, job(Job, Tasks), Jobs).
 
-%%%%%%%%%%%%%%%%%%%% HORIZON %%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%      HORIZON       %%%%%%%%%%%%%%%%%%%%
 
 % get_max_timespan(+Jobs, -Horizon)
 get_max_timespan(Jobs, Horizon) :-
@@ -43,7 +43,7 @@ get_max_alternative_task_time([_-Duration | AltTasks], Current, Max) :-
     max(Duration, Current, NewCurrent),
     get_max_alternative_task_time(AltTasks, NewCurrent, Max).
 
-%%%%%%%%%%%%%%%%%%%%  TASKS  %%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%       TASKS        %%%%%%%%%%%%%%%%%%%%
 
 % get_tasks(+Jobs, -Tasks)
 get_tasks([], []).
@@ -74,3 +74,13 @@ get_job_alternative_tasks(_, _, _, [], []).
 get_job_alternative_tasks(JobId, TaskId, AltId, [AltTask | AltTasks], [JobId-TaskId-AltId-AltTask | JobTasks]) :-
     NewAltId is AltId + 1,
     get_job_alternative_tasks(JobId, TaskId, NewAltId, AltTasks, JobTasks).
+
+%%%%%%%%%%%%%%%%%%%% OBJECTIVE FUNCTION %%%%%%%%%%%%%%%%%%%%
+% get_latest_finish(+Ends, +CurrentObjFunc, -ObjectiveFunction)
+get_latest_finish([], CurrentObjFunc, CurrentObjFunc).
+get_latest_finish([End | Ends], CurrentObjFunc, ObjectiveFunction) :-
+    End > CurrentObjFunc,
+    get_latest_finish(Ends, End, ObjectiveFunction).
+get_latest_finish([End | Ends], CurrentObjFunc, ObjectiveFunction) :-
+    End =< CurrentObjFunc,
+    get_latest_finish(Ends, CurrentObjFunc, ObjectiveFunction).
