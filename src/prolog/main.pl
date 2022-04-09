@@ -6,11 +6,9 @@
 :- ensure_loaded('constraints.pl').
 
 jobshop :-
-    % Data
+    % Tasks (Data)
     get_jobs(Jobs),
     get_max_timespan(Jobs, Horizon),
-
-    % Tasks
     get_tasks(Jobs, Tasks),
     length(Tasks , N),
 
