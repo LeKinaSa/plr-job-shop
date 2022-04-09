@@ -62,6 +62,6 @@ add_chosen_alternative_tasks([(_-_-0)-_ | Tasks], [YesOrNo | Chosen], List, Sum)
 
 % only_one_chosen(+Sum)
 only_one_chosen([]).
-only_one_chosen([_-N | Sum]) :-
+only_one_chosen([N | Sum]) :-
     N #= 1,
     only_one_chosen(Sum).
