@@ -76,11 +76,6 @@ get_job_alternative_tasks(JobId, TaskId, AltId, [AltTask | AltTasks], [JobId-Tas
     get_job_alternative_tasks(JobId, TaskId, NewAltId, AltTasks, JobTasks).
 
 %%%%%%%%%%%%%%%%%%%% OBJECTIVE FUNCTION %%%%%%%%%%%%%%%%%%%%
-% get_latest_finish(+Ends, +CurrentObjFunc, -ObjectiveFunction)
-get_latest_finish([], CurrentObjFunc, CurrentObjFunc).
-get_latest_finish([End | Ends], CurrentObjFunc, ObjectiveFunction) :-
-    End > CurrentObjFunc,
-    get_latest_finish(Ends, End, ObjectiveFunction).
-get_latest_finish([End | Ends], CurrentObjFunc, ObjectiveFunction) :-
-    End =< CurrentObjFunc,
-    get_latest_finish(Ends, CurrentObjFunc, ObjectiveFunction).
+% get_latest_finish(+Ends, -ObjectiveFunction)
+get_latest_finish(Ends, ObjectiveFunction) :-
+    max_list(Ends, 0, ObjectiveFunction).
