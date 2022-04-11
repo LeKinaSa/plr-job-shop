@@ -3,10 +3,7 @@ import json, math
 
 from constants import TASK_DURATION, TASK_MACHINE, DataDifficulty
 
-PRODUCTION_TIME = 'production_time'
-PRODUCTION_LINE = 'production_line'
-CAPACITY        = 'capacity'
-MODEL_TOTALS    = 'total'
+DATA_HARD = 'data/fab.json'
 
 def get_data(data_difficulty=DataDifficulty.EASY):
     if data_difficulty == DataDifficulty.EASY:
@@ -35,41 +32,8 @@ def get_data_easy():
     return jobs
 
 def get_data_hard():
-    with open('data/models.json', 'r') as file:
-        models = json.load(file)
-    del_models = []
-    for model_id, model in models.items():
-        if model[MODEL_TOTALS] == 0:
-            del_models.append(model_id)
-    for del_model in del_models:
-        del models[del_model]
-    
-    with open('data/lines.json', 'r') as file:
-        lines_raw = json.load(file)
-    lines = {}
-    for line_id, line in lines_raw.items():
-        lines[int(line_id)] = line
-    
-    # Each Job has 3 Tasks
-    # Task 0 - before the resources arrive
-    # Task 1 - production (may have alternative tasks in different machines)
-    # Task 2 - delivery deadline
-    
-    jobs = {}
-    for model_id, model in models.items():
-        tasks = []
-        alternative_tasks = []
-    
-        for production_line in model[PRODUCTION_LINE]:
-            t = [0, 0]
-            task_duration = model[MODEL_TOTALS] * model[PRODUCTION_TIME] / lines[production_line][CAPACITY]
-            t[TASK_MACHINE ] = production_line
-            t[TASK_DURATION] = math.ceil(task_duration)
-            alternative_tasks.append(tuple(t))
-
-        tasks.append(alternative_tasks)
-        
-        jobs[model_id] = tasks
+    with open('data/fab.json', 'r') as file:
+        jobs = json.load(file)
     return jobs
 
 if __name__ == '__main__':
