@@ -135,13 +135,13 @@ def get_prolog_lines(jobs):
     # Task 2 - delivery deadline
     
     lines = [
-        '% job(+JobId, +Tasks) | Tasks = [Task] | Task = [AltTask] | AltTask = MachineId-Duration\n'
+        '% job(+JobId, +Tasks) | Tasks = [Task] | Task = [AltTask] | AltTask = MachineId-UnitDuration-NumberOfUnits\n'
     ]
     
     for model_id, tasks in jobs.items():
         for task in tasks:
             for alt_task_id, alt_task in enumerate(task):
-                task[alt_task_id] = f'{alt_task[TASK_MACHINE]}-{alt_task[TASK_DURATION]}'
+                task[alt_task_id] = f'{alt_task[TASK_MACHINE]}-{alt_task[TASK_DURATION]}-{alt_task[TASK_SIZE]}'
         
         line = f'job({model_id}, {tasks}).\n'
         line = line.replace('\'', '')
