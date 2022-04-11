@@ -37,11 +37,12 @@ def get_data_medium():
     with open(DATA, 'r') as file:
         jobs = json.load(file)
     
-    for (size, tasks) in jobs.values():
+    for job_id, (size, tasks) in jobs.items():
         for task in tasks:
             for alt_task in task:
                 if alt_task[TASK_MACHINE] != INFINITE_MACHINE:
                     alt_task[TASK_DURATION] = alt_task[TASK_DURATION] * size
+        jobs[job_id] = tasks
     return jobs
 
 def get_data_hard():
