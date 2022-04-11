@@ -4,6 +4,7 @@ import json, math
 
 TASK_MACHINE  = 0
 TASK_DURATION = 1
+TASK_SIZE     = 2 # TODO: add to prolog
 
 PRODUCTION_TIME = 'production_time'
 PRODUCTION_LINE = 'production_line'
@@ -100,10 +101,10 @@ def get_jobs(models, lines):
         alternative_tasks = []
     
         for production_line in model[PRODUCTION_LINE]:
-            t = [0, 0]
-            task_duration = model[MODEL_TOTALS] * model[PRODUCTION_TIME] / lines[production_line][CAPACITY]
+            t = [0, 0, 0]
             t[TASK_MACHINE ] = production_line
-            t[TASK_DURATION] = math.ceil(task_duration)
+            t[TASK_DURATION] = math.ceil(model[PRODUCTION_TIME] / lines[production_line][CAPACITY])
+            t[TASK_SIZE    ] = model[MODEL_TOTALS]
             alternative_tasks.append(tuple(t))
 
         tasks.append(alternative_tasks)

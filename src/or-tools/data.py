@@ -1,7 +1,7 @@
 
-import json, math
+import json
 
-from constants import TASK_DURATION, TASK_MACHINE, DataDifficulty
+from constants import DataDifficulty
 
 DATA = 'data/fab.json'
 
