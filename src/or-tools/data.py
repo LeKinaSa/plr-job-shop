@@ -3,11 +3,13 @@ import json, math
 
 from constants import TASK_DURATION, TASK_MACHINE, DataDifficulty
 
-DATA_HARD = 'data/fab.json'
+DATA = 'data/fab.json'
 
 def get_data(data_difficulty=DataDifficulty.EASY):
     if data_difficulty == DataDifficulty.EASY:
         return get_data_easy()
+    if data_difficulty == DataDifficulty.MEDIUM:
+        return get_data_medium()
     if data_difficulty == DataDifficulty.HARD:
         return get_data_hard()
 
@@ -31,10 +33,13 @@ def get_data_easy():
     }
     return jobs
 
-def get_data_hard():
-    with open('data/fab.json', 'r') as file:
+def get_data_medium():
+    with open(DATA, 'r') as file:
         jobs = json.load(file)
     return jobs
+
+def get_data_hard():
+    return {}
 
 if __name__ == '__main__':
     # Get Data
