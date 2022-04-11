@@ -2,9 +2,10 @@
 import openpyxl as excel
 import json, math
 
+INFINITE_MACHINE = -1
+
 TASK_MACHINE  = 0
 TASK_DURATION = 1
-TASK_SIZE     = 2 # TODO: add to prolog
 
 PRODUCTION_TIME = 'production_time'
 PRODUCTION_LINE = 'production_line'
@@ -12,7 +13,7 @@ CAPACITY        = 'capacity'
 MODEL_TOTALS    = 'total'
 
 ORTOOLS_DATA_FILE = 'data/fab.json'
-PROLOG_DATA_FILE = 'data/fab.pl'
+PROLOG_DATA_FILE  = 'data/fab.pl'
 
 def get_data():
     # Data Constants
@@ -97,19 +98,19 @@ def get_jobs(models, lines):
 
     jobs = {}
     for model_id, model in models.items():
+        size = model[MODEL_TOTALS]
         tasks = []
         alternative_tasks = []
     
         for production_line in model[PRODUCTION_LINE]:
-            t = [0, 0, 0]
+            t = [0, 0]
             t[TASK_MACHINE ] = production_line
             t[TASK_DURATION] = math.ceil(model[PRODUCTION_TIME] / lines[production_line][CAPACITY])
-            t[TASK_SIZE    ] = model[MODEL_TOTALS]
             alternative_tasks.append(tuple(t))
 
         tasks.append(alternative_tasks)
         
-        jobs[model_id] = tasks
+        jobs[model_id] = (size, tasks)
     return jobs
 
 def save_data(jobs):
@@ -137,11 +138,12 @@ def get_prolog_lines(jobs):
     lines = [
         '% job(+JobId, +Tasks) | Tasks = [Task] | Task = [AltTask] | AltTask = MachineId-Duration\n'
     ]
-    
-    for model_id, tasks in jobs.items():
+
+    for model_id, (size, tasks) in jobs.items():
         for task in tasks:
             for alt_task_id, alt_task in enumerate(task):
-                task[alt_task_id] = f'{alt_task[TASK_MACHINE]}-{alt_task[TASK_DURATION]*alt_task[TASK_SIZE]}'
+                duration = alt_task[TASK_DURATION] if alt_task[TASK_MACHINE] == INFINITE_MACHINE else alt_task[TASK_DURATION] * size
+                task[alt_task_id] = f'{alt_task[TASK_MACHINE]}-{duration}'
         
         line = f'job({model_id}, {tasks}).\n'
         line = line.replace('\'', '')

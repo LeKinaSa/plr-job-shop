@@ -1,7 +1,7 @@
 
 import json
 
-from constants import DataDifficulty
+from constants import TASK_MACHINE, TASK_DURATION, INFINITE_MACHINE, DataDifficulty
 
 DATA = 'data/fab.json'
 
@@ -36,10 +36,33 @@ def get_data_easy():
 def get_data_medium():
     with open(DATA, 'r') as file:
         jobs = json.load(file)
+    
+    for (size, tasks) in jobs.values():
+        for task in tasks:
+            for alt_task in task:
+                if alt_task[TASK_MACHINE] != INFINITE_MACHINE:
+                    alt_task[TASK_DURATION] = alt_task[TASK_DURATION] * size
     return jobs
 
 def get_data_hard():
-    return {}
+    with open(DATA, 'r') as file:
+        jobs = json.load(file)
+    
+    for job_id, (size, tasks) in jobs.items():
+        new_tasks = get_new_tasks(size, tasks)
+        jobs[job_id] = new_tasks
+        
+    return jobs
+
+def get_new_tasks(size, tasks):
+    new_tasks = []
+    for task in tasks:
+        if len(task) == 1 and task[0][TASK_MACHINE] == INFINITE_MACHINE:
+            new_tasks.append(task)
+        else:
+            for _ in range(size):
+                new_tasks.append(task)
+    return new_tasks
 
 if __name__ == '__main__':
     # Get Data
