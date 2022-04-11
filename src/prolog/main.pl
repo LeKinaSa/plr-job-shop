@@ -38,7 +38,7 @@ jobshop(Jobs, Horizon) :-
     append(Start  , End   , VarsAux),
     append(VarsAux, Chosen, Vars   ),
     labeling([], Vars),
-    get_latest_finish(End, ObjFunc),
+    get_latest_finish(End, Chosen, ObjFunc),
 
     % Print
     print(Tasks, Start, End, Chosen, Horizon, ObjFunc).
