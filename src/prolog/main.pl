@@ -31,8 +31,8 @@ jobshop(Jobs, Horizon) :-
 
     % Constraints
     task_duration(Tasks, Start, End),
-    only_one_task_per_machine_at_a_time(Tasks, Start, End, Chosen),
     only_one_chosen_alternative_task(Tasks, Chosen),
+    only_one_task_per_machine_at_a_time(Tasks, Start, End, Chosen),
     
     % Solve
     append(Start  , End   , VarsAux),
