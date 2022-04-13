@@ -2,7 +2,6 @@
 % print(+Tasks, +Starts, +Ends, +Chosen, +Horizon, +ObjectiveFunctionValue)
 print(Tasks, Start, End, Chosen, Horizon, ObjFunc) :-
     divide_tasks(Tasks, Machines, Interval),
-                                         nl,
     write('Machines '), write(Machines), nl,
     write('Interval '), write(Interval), nl,
     write('Start    '), write(Start   ), nl,

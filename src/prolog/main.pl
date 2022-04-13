@@ -5,21 +5,31 @@
 :- ensure_loaded('output.pl').
 :- ensure_loaded('constraints.pl').
 
-% jobshop -> job shop with unlimited time span
+% job shop problem
 jobshop :-
     % Jobs and Horizon (Data)
     get_jobs(Jobs),
     get_max_timespan(Jobs, Horizon),
-    jobshop(Jobs, Horizon).
 
-% jobshop(+Horizon) -> job shop with limited time span
-jobshop(Horizon) :-
-    % Jobs (Data)
-    get_jobs(Jobs),
-    jobshop(Jobs, Horizon).
+    % Find a possible solution
+    jobshop_optimizer(Jobs, Horizon, 0).
 
-% jobshop(+Jobs, +Horizon) -> job shop solver
-jobshop(Jobs, Horizon) :-
+% jobshop_optimizer(+Jobs, +Horizon, +Iteration) -> job shop optimizer ; finds the best solution to the job shop problem
+jobshop_optimizer(Jobs, Horizon, Iteration) :-
+    nl, nl, write('         Iteration '), write(Iteration), nl,
+    % Search for the Current ObjFunc
+    jobshop_solver(Jobs, Horizon, ObjFunc),
+
+    % Check if there is a Solution with a Smaller ObjFunc
+    NewHorizon is ObjFunc - 1,
+    NewIteration is Iteration + 1,
+    jobshop_optimizer(Jobs, NewHorizon, NewIteration).
+
+jobshop_optimizer(_, _, _) :-
+    write('         Found Solution'), nl, nl, nl.
+
+% jobshop_solver(+Jobs, +Horizon, -ObjFunc) -> job shop solver ; find a solution to the job shop problem
+jobshop_solver(Jobs, Horizon, ObjFunc) :-
     % Tasks (Data)
     get_tasks(Jobs, Tasks),
     length(Tasks , N),
