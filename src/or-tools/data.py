@@ -1,16 +1,15 @@
 
-import json, math
+import json
 
-from constants import TASK_DURATION, TASK_MACHINE, DataDifficulty
+from constants import TASK_MACHINE, TASK_DURATION, INFINITE_MACHINE, DataDifficulty
 
-PRODUCTION_TIME = 'production_time'
-PRODUCTION_LINE = 'production_line'
-CAPACITY        = 'capacity'
-MODEL_TOTALS    = 'total'
+DATA = 'data/fab.json'
 
 def get_data(data_difficulty=DataDifficulty.EASY):
     if data_difficulty == DataDifficulty.EASY:
         return get_data_easy()
+    if data_difficulty == DataDifficulty.MEDIUM:
+        return get_data_medium()
     if data_difficulty == DataDifficulty.HARD:
         return get_data_hard()
 
@@ -34,43 +33,37 @@ def get_data_easy():
     }
     return jobs
 
-def get_data_hard():
-    with open('data/models.json', 'r') as file:
-        models = json.load(file)
-    del_models = []
-    for model_id, model in models.items():
-        if model[MODEL_TOTALS] == 0:
-            del_models.append(model_id)
-    for del_model in del_models:
-        del models[del_model]
+def get_data_medium():
+    with open(DATA, 'r') as file:
+        jobs = json.load(file)
     
-    with open('data/lines.json', 'r') as file:
-        lines_raw = json.load(file)
-    lines = {}
-    for line_id, line in lines_raw.items():
-        lines[int(line_id)] = line
-    
-    # Each Job has 3 Tasks
-    # Task 0 - before the resources arrive
-    # Task 1 - production (may have alternative tasks in different machines)
-    # Task 2 - delivery deadline
-    
-    jobs = {}
-    for model_id, model in models.items():
-        tasks = []
-        alternative_tasks = []
-    
-        for production_line in model[PRODUCTION_LINE]:
-            t = [0, 0]
-            task_duration = model[MODEL_TOTALS] * model[PRODUCTION_TIME] / lines[production_line][CAPACITY]
-            t[TASK_MACHINE ] = production_line
-            t[TASK_DURATION] = math.ceil(task_duration)
-            alternative_tasks.append(tuple(t))
-
-        tasks.append(alternative_tasks)
-        
-        jobs[model_id] = tasks
+    for job_id, (size, tasks) in jobs.items():
+        for task in tasks:
+            for alt_task in task:
+                if alt_task[TASK_MACHINE] != INFINITE_MACHINE:
+                    alt_task[TASK_DURATION] = alt_task[TASK_DURATION] * size
+        jobs[job_id] = tasks
     return jobs
+
+def get_data_hard():
+    with open(DATA, 'r') as file:
+        jobs = json.load(file)
+    
+    for job_id, (size, tasks) in jobs.items():
+        new_tasks = get_new_tasks(size, tasks)
+        jobs[job_id] = new_tasks
+        
+    return jobs
+
+def get_new_tasks(size, tasks):
+    new_tasks = []
+    for task in tasks:
+        if len(task) == 1 and task[0][TASK_MACHINE] == INFINITE_MACHINE:
+            new_tasks.append(task)
+        else:
+            for _ in range(size):
+                new_tasks.append(task)
+    return new_tasks
 
 if __name__ == '__main__':
     # Get Data

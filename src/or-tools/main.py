@@ -8,9 +8,9 @@ from constants import TASK_DURATION, TASK_MACHINE, DataDifficulty
 
 def jobshop():
     # Get Data
-    jobs = get_data(DataDifficulty.HARD)
+    jobs = get_data(DataDifficulty.EASY)
 
-    # Compute horizon (worst case scenario)
+    # Compute Horizon (worst case scenario)
     horizon = 0
     for job in jobs.values():
         for task in job:
@@ -20,7 +20,7 @@ def jobshop():
     # Create the Model
     model = cp_model.CpModel()
 
-    # Global storage of variables.
+    # Global Storage of Variables
     intervals_per_resources = collections.defaultdict(list)
     starts    = {}  # indexed by (job_id, task_id)
     presences = {}  # indexed by (job_id, task_id, alt_id)

@@ -76,6 +76,16 @@ get_job_alternative_tasks(JobId, TaskId, AltId, [AltTask | AltTasks], [JobId-Tas
     get_job_alternative_tasks(JobId, TaskId, NewAltId, AltTasks, JobTasks).
 
 %%%%%%%%%%%%%%%%%%%% OBJECTIVE FUNCTION %%%%%%%%%%%%%%%%%%%%
-% get_latest_finish(+Ends, -ObjectiveFunction)
-get_latest_finish(Ends, ObjectiveFunction) :-
-    max_list(Ends, 0, ObjectiveFunction).
+% get_latest_finish(+Ends, +Chosen, -ObjectiveFunction)
+get_latest_finish(Ends, Chosen, ObjectiveFunction) :-
+    get_chosen_finishes(Ends, Chosen, [], ChosenEnds),
+    max_list(ChosenEnds, 0, ObjectiveFunction).
+
+% get_chosen_finishes(+Ends, +Chosen, +Temp, -ChosenEnds)
+get_chosen_finishes([], [], ChosenEnds, ChosenEnds).
+get_chosen_finishes([End | Ends], [YesOrNo | Chosen], Temp, ChosenEnds) :-
+    YesOrNo #= 1,
+    get_chosen_finishes(Ends, Chosen, [End | Temp], ChosenEnds).
+get_chosen_finishes([_ | Ends], [YesOrNo | Chosen], Temp, ChosenEnds) :-
+    YesOrNo #= 0,
+    get_chosen_finishes(Ends, Chosen, Temp, ChosenEnds).

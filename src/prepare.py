@@ -2,6 +2,8 @@
 import openpyxl as excel
 import json, math
 
+INFINITE_MACHINE = -1
+
 TASK_MACHINE  = 0
 TASK_DURATION = 1
 
@@ -9,6 +11,9 @@ PRODUCTION_TIME = 'production_time'
 PRODUCTION_LINE = 'production_line'
 CAPACITY        = 'capacity'
 MODEL_TOTALS    = 'total'
+
+ORTOOLS_DATA_FILE = 'data/fab.json'
+PROLOG_DATA_FILE  = 'data/fab.pl'
 
 def get_data():
     # Data Constants
@@ -72,40 +77,59 @@ def get_data():
         else:
             print(f'Model {model} doesn\'t exist')
     
-    # Finished
-    workbook.close()
-    return (models, lines)
-
-def save_data(models, lines):
-    save_ortools(models, lines)
-    save_prolog(models, lines)
-
-def save_ortools(models, lines):
-    MODELS_FILE = 'data/models.json'
-    LINES_FILE  = 'data/lines.json'
-    
-    with open(MODELS_FILE, 'w') as file:
-        json.dump(models, file)
-    with open(LINES_FILE , 'w') as file:
-        json.dump(lines, file)
-    
-def save_prolog(models, production_lines):
-    DATA_FILE = 'data/fab.pl'
-
-    lines = get_prolog_lines(models, production_lines)
-    
-    with open(DATA_FILE, 'w') as file:
-        file.writelines(lines)
-    return
-
-def get_prolog_lines(models, production_lines):
+    # Remove Models that don't have any pieces to produce
     del_models = []
     for model_id, model in models.items():
         if model[MODEL_TOTALS] == 0:
             del_models.append(model_id)
     for del_model in del_models:
+        print(f'Model {del_model} doesn\'t have any pieces to produce')
         del models[del_model]
     
+    # Finished
+    workbook.close()
+    return (models, lines)
+    
+def get_jobs(models, lines):
+    # Each Job has 3 Tasks
+    # Task 0 - before the resources arrive
+    # Task 1 - production (may have alternative tasks in different machines)
+    # Task 2 - delivery deadline
+
+    jobs = {}
+    for model_id, model in models.items():
+        size = model[MODEL_TOTALS]
+        tasks = []
+        alternative_tasks = []
+    
+        for production_line in model[PRODUCTION_LINE]:
+            t = [0, 0]
+            t[TASK_MACHINE ] = production_line
+            t[TASK_DURATION] = math.ceil(model[PRODUCTION_TIME] / lines[production_line][CAPACITY])
+            alternative_tasks.append(tuple(t))
+
+        tasks.append(alternative_tasks)
+        
+        jobs[model_id] = (size, tasks)
+    return jobs
+
+def save_data(jobs):
+    save_ortools(jobs)
+    save_prolog(jobs)
+
+def save_ortools(jobs):
+    with open(ORTOOLS_DATA_FILE, 'w') as file:
+        json.dump(jobs, file)
+    return
+
+def save_prolog(jobs):
+    lines = get_prolog_lines(jobs)
+    
+    with open(PROLOG_DATA_FILE, 'w') as file:
+        file.writelines(lines)
+    return
+
+def get_prolog_lines(jobs):
     # Each Job has 3 Tasks
     # Task 0 - before the resources arrive
     # Task 1 - production (may have alternative tasks in different machines)
@@ -114,28 +138,23 @@ def get_prolog_lines(models, production_lines):
     lines = [
         '% job(+JobId, +Tasks) | Tasks = [Task] | Task = [AltTask] | AltTask = MachineId-Duration\n'
     ]
-    
-    for model_id, model in models.items():
-        tasks = []
-        alternative_tasks = []
-        
-        for production_line in model[PRODUCTION_LINE]:
-            t = [0, 0]
-            task_duration = model[MODEL_TOTALS] * model[PRODUCTION_TIME] / production_lines[production_line][CAPACITY]
-            t[TASK_MACHINE ] = production_line
-            t[TASK_DURATION] = math.ceil(task_duration)
-            alternative_tasks.append(t)
-        
-        tasks.append(alternative_tasks)
+
+    for model_id, (size, tasks) in jobs.items():
+        for task in tasks:
+            for alt_task_id, alt_task in enumerate(task):
+                duration = alt_task[TASK_DURATION] if alt_task[TASK_MACHINE] == INFINITE_MACHINE else alt_task[TASK_DURATION] * size
+                task[alt_task_id] = f'{alt_task[TASK_MACHINE]}-{duration}'
         
         line = f'job({model_id}, {tasks}).\n'
+        line = line.replace('\'', '')
         lines.append(line)
     return lines
 
 if __name__ == '__main__':
     # Get Data
     (models, lines) = get_data()
-    save_data(models, lines)
+    jobs = get_jobs(models, lines)
+    save_data(jobs)
     
     # Test
     print('Done.')
