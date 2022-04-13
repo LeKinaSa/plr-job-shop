@@ -1,4 +1,6 @@
 
+:- use_module(library(lists)).
+
 :- ensure_loaded('../../data/fab-easy.pl').
 :- ensure_loaded('helpers.pl').
 
@@ -40,7 +42,7 @@ get_max_alternative_task_time(AlternativeTasks, Max) :-
 % get_max_alternative_task_time(+AlternativeTasks, +Current, -Max)
 get_max_alternative_task_time([], Max, Max).
 get_max_alternative_task_time([_-Duration | AltTasks], Current, Max) :-
-    max(Duration, Current, NewCurrent),
+    max_member(NewCurrent, [Duration, Current]),
     get_max_alternative_task_time(AltTasks, NewCurrent, Max).
 
 %%%%%%%%%%%%%%%%%%%%       TASKS        %%%%%%%%%%%%%%%%%%%%
@@ -79,7 +81,7 @@ get_job_alternative_tasks(JobId, TaskId, AltId, [AltTask | AltTasks], [JobId-Tas
 % get_latest_finish(+Ends, +Chosen, -ObjectiveFunction)
 get_latest_finish(Ends, Chosen, ObjectiveFunction) :-
     get_chosen_finishes(Ends, Chosen, [], ChosenEnds),
-    max_list(ChosenEnds, 0, ObjectiveFunction).
+    maximum(ObjectiveFunction, ChosenEnds).
 
 % get_chosen_finishes(+Ends, +Chosen, +Temp, -ChosenEnds)
 get_chosen_finishes([], [], ChosenEnds, ChosenEnds).
