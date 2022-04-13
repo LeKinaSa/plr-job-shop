@@ -26,7 +26,7 @@ jobshop_optimizer(Jobs, Horizon, Iteration) :-
     jobshop_solver(Jobs, Horizon, ObjFunc),
 
     % Print Iteration Time
-    print_time('         '),
+    print_time('         Iteration Time: '),
 
     % Check if there is a Solution with a Smaller ObjFunc
     NewHorizon is ObjFunc - 1,
@@ -35,7 +35,7 @@ jobshop_optimizer(Jobs, Horizon, Iteration) :-
 
 jobshop_optimizer(_, _, _) :-
     % Print Iteration Time
-    print_time('         '),
+    print_time('         Iteration Time: '),
 
     % Reached Optimal Solution
     write('         Found Solution'), nl, nl, nl.
