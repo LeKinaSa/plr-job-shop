@@ -38,3 +38,35 @@
 
 ### Basic
 - Products and 2 Production Lines.
+
+## Presentation
+
+### Next Steps
+- overtime (modulation and possible solutions)
+- possible alterations to implemented constraints
+
+### Complexity Analysis
+- Which input factor affects more / less the time complexity?
+- What are the best proportions for Jobs / Tasks / AltTasks / Machines ?
+
+### Analysis on 3 Axis
+- method / strategy for variable selection
+  - how to choose the next variable?
+  - strategy used to choose the next variable
+- method / strategy for value selection
+  - how to choose the value for that variable?
+  - strategy used to choose the value for the chosen variable
+- dimensions of the problem
+  - jobs
+  - tasks
+  - alt tasks
+  - machines
+  - percentage of alt tasks per machine
+  - times(?)
+
+### Topics
+- input
+- output
+- constraints
+- modelation
+- demo
