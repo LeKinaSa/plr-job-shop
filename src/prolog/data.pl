@@ -19,30 +19,30 @@ get_max_timespan(Jobs, Horizon) :-
 % get_max_timespan(+Jobs, +Temp, -Horizon)
 get_max_timespan([], Horizon, Horizon).
 get_max_timespan([_-Tasks | Jobs], Temp, Horizon) :-
-    get_max_task_time(Tasks, TaskTime),
+    get_task_time(Tasks, TaskTime),
     NextTemp is Temp + TaskTime,
     get_max_timespan(Jobs, NextTemp, Horizon).
 
-% get_max_task_time(+Tasks, -TaskTime)
-get_max_task_time(Tasks, TaskTime) :-
-    get_max_task_time(Tasks, 0, TaskTime).
+% get_task_time(+Tasks, -TaskTime)
+get_task_time(Tasks, TaskTime) :-
+    get_task_time(Tasks, 0, TaskTime).
 
-% get_max_task_time(+Task, +Temp, -Total)
-get_max_task_time([], Total, Total).
-get_max_task_time([Task | Tasks], Temp, Total) :-
-    get_max_alternative_task_time(Task, TaskTime),
+% get_task_time(+Task, +Temp, -Total)
+get_task_time([], Total, Total).
+get_task_time([Task | Tasks], Temp, Total) :-
+    get_min_alternative_task_time(Task, TaskTime),
     NextTemp is Temp + TaskTime,
-    get_max_task_time(Tasks, NextTemp, Total).
+    get_task_time(Tasks, NextTemp, Total).
 
-% get_max_alternative_task_time(+AlternativeTasks, -Max)
-get_max_alternative_task_time(AlternativeTasks, Max) :-
-    get_max_alternative_task_time(AlternativeTasks, 0, Max).
+% get_min_alternative_task_time(+AlternativeTasks, -Min)
+get_min_alternative_task_time([M-D | AlternativeTasks], Min) :-
+    get_min_alternative_task_time([M-D | AlternativeTasks], D, Min).
 
-% get_max_alternative_task_time(+AlternativeTasks, +Current, -Max)
-get_max_alternative_task_time([], Max, Max).
-get_max_alternative_task_time([_-Duration | AltTasks], Current, Max) :-
-    max_member(NewCurrent, [Duration, Current]),
-    get_max_alternative_task_time(AltTasks, NewCurrent, Max).
+% get_min_alternative_task_time(+AlternativeTasks, +Current, -Max)
+get_min_alternative_task_time([], Min, Min).
+get_min_alternative_task_time([_-Duration | AltTasks], Current, Min) :-
+    min_member(NewCurrent, [Duration, Current]),
+    get_min_alternative_task_time(AltTasks, NewCurrent, Min).
 
 %%%%%%%%%%%%%%%%%%%%       TASKS        %%%%%%%%%%%%%%%%%%%%
 
