@@ -46,7 +46,7 @@ dvar interval modes[md in Modes] optional size md.pt;
 dvar sequence mchs[m in Mchs] in all(md in Modes: md.mch == m) modes[md];
 
 execute {
-  		cp.param.FailLimit = 10000;
+  cp.param.FailLimit = 10000;
 }
 
 minimize max(j in Jobs, o in Ops: o.pos==jlast[j]) endOf(ops[o]);
@@ -62,11 +62,11 @@ subject to {
 execute {
   for (var m in Modes) {
     if (modes[m].present)
-      writeln("Operation " + m.opId + " on machine " + m.mch + " starting at " + modes[m].start);
+      writeln("Operation " + m.opId + " on machine " + m.mch + " starting at " + modes[m].start + " with duration " + m.pt);
   }
 }
 
-tuple solutionT{
+tuple solutionT {
 	int operation;
 	int machine;
 	int start;
