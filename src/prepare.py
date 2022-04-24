@@ -1,6 +1,7 @@
 
 import openpyxl as excel
 import json, math
+from copy import deepcopy
 
 INFINITE_MACHINE = 0
 
@@ -14,6 +15,9 @@ MODEL_TOTALS    = 'total'
 
 ORTOOLS_DATA_FILE = 'data/fab.json'
 PROLOG_DATA_FILE  = 'data/fab.pl'
+CPLEX_DATA_FILE   = 'data/fab.dat'
+
+LOG = False
 
 def get_data():
     # Data Constants
@@ -75,7 +79,8 @@ def get_data():
         if model in models:
             models[model][MODEL_TOTALS] += total
         else:
-            print(f'Model {model} doesn\'t exist')
+            if LOG:
+                print(f'Model {model} doesn\'t exist')
     
     # Remove Models that don't have any pieces to produce
     del_models = []
@@ -83,13 +88,14 @@ def get_data():
         if model[MODEL_TOTALS] == 0:
             del_models.append(model_id)
     for del_model in del_models:
-        print(f'Model {del_model} doesn\'t have any pieces to produce')
+        if LOG:
+            print(f'Model {del_model} doesn\'t have any pieces to produce')
         del models[del_model]
     
     # Finished
     workbook.close()
     return (models, lines)
-    
+
 def get_jobs(models, lines):
     # Each Job has 3 Tasks
     # Task 0 - before the resources arrive
@@ -116,6 +122,7 @@ def get_jobs(models, lines):
 def save_data(jobs):
     save_ortools(jobs)
     save_prolog(jobs)
+    save_cplex(jobs)
 
 def save_ortools(jobs):
     with open(ORTOOLS_DATA_FILE, 'w') as file:
@@ -123,6 +130,7 @@ def save_ortools(jobs):
     return
 
 def save_prolog(jobs):
+    jobs = deepcopy(jobs)
     lines = get_prolog_lines(jobs)
     
     with open(PROLOG_DATA_FILE, 'w') as file:
@@ -142,12 +150,37 @@ def get_prolog_lines(jobs):
     for model_id, tasks in jobs.items():
         for task in tasks:
             for alt_task_id, alt_task in enumerate(task):
-                duration = alt_task[TASK_DURATION] if alt_task[TASK_MACHINE] == INFINITE_MACHINE else alt_task[TASK_DURATION]
-                task[alt_task_id] = f'{alt_task[TASK_MACHINE]}-{duration}'
+                task[alt_task_id] = f'{alt_task[TASK_MACHINE]}-{alt_task[TASK_DURATION]}'
         
         line = f'job({model_id}, {tasks}).\n'
         line = line.replace('\'', '')
         lines.append(line)
+    return lines
+
+def save_cplex(jobs):
+    lines = get_cplex_lines(jobs)
+    
+    with open(CPLEX_DATA_FILE, 'w') as file:
+        file.writelines(lines)
+    return
+
+def get_cplex_lines(jobs):
+    ops   = [ 'Ops = {   // OperationID, JobID, JobPosition\n'      ]
+    modes = [ 'Modes = { // OperationID, Machine, ProcessingTime\n' ]
+    
+    for job_id, tasks in jobs.items():
+        for task_id, task in enumerate(tasks):
+            operation_id = job_id * 10 + task_id
+            ops.append(f'  <{operation_id}, {job_id}, {task_id}>,\n')
+            for alt_task in task:
+                modes.append(f'  <{operation_id}, {alt_task[TASK_MACHINE]}, {alt_task[TASK_DURATION]}>,\n')
+    
+    ops  .append('};\n')
+    modes.append('};\n')
+    
+    lines = ['Params = <3, 3>;\n'] # TODO
+    lines.extend(ops  )
+    lines.extend(modes)
     return lines
 
 def statistics(jobs):
@@ -174,7 +207,8 @@ if __name__ == '__main__':
     save_data(jobs)
     
     # Show Statistics
-    statistics(jobs)
+    if LOG:
+        statistics(jobs)
     
     # Test
     print('Done.')
