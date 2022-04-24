@@ -150,11 +150,27 @@ def get_prolog_lines(jobs):
         lines.append(line)
     return lines
 
+def statistics(jobs):
+    def n_production_lines(job_tasks):
+        tasks = job_tasks[1]
+        production_tasks = tasks[0]  # TODO: modify to 1 when introducing resource arrival date
+        return len(production_tasks), job_tasks[0]
+
+    jobs = list(map(n_production_lines, jobs.values()))
+    only_one_line = list(map(lambda x: x[1], filter(lambda job: job[0] == 1, jobs)))
+    both_lines    = list(map(lambda x: x[1], filter(lambda job: job[0] == 2, jobs)))
+
+    print()
+    print(f'Number of Different Products: {len(jobs)}')
+    print(f'Number of Products that can only be produced in 1 line: {len(only_one_line)} - {sum(only_one_line)}')
+    print(f'Number of Products that can be produced in both lines:  {len(both_lines   )} - {sum(both_lines   )}')
+
 if __name__ == '__main__':
     # Get Data
     (models, lines) = get_data()
     jobs = get_jobs(models, lines)
-    save_data(jobs)
+    statistics(jobs)
+    # save_data(jobs)
     
     # Test
     print('Done.')
