@@ -8,7 +8,7 @@ from constants import TASK_DURATION, TASK_MACHINE, DataDifficulty
 
 def jobshop():
     # Get Data
-    jobs = get_data(DataDifficulty.EASY)
+    jobs = get_data(DataDifficulty.EXAMPLE)
 
     # Compute Horizon (worst case scenario)
     horizon = 0

@@ -21,6 +21,10 @@ ORTOOLS_EASY_DATA_FILE = 'data/fab-easy.json'
 PROLOG_EASY_DATA_FILE  = 'data/fab-easy.pl'
 CPLEX_EASY_DATA_FILE   = 'data/fab-easy.dat'
 
+ORTOOLS_EXAMPLE_DATA_FILE = 'data/example.json'
+PROLOG_EXAMPLE_DATA_FILE  = 'data/example.pl'
+CPLEX_EXAMPLE_DATA_FILE   = 'data/example.dat'
+
 LOG = False
 
 ######################### Real Data #########################
@@ -153,6 +157,23 @@ def save_easy_data():
     save_prolog (jobs,  PROLOG_EASY_DATA_FILE)
     save_cplex  (jobs,   CPLEX_EASY_DATA_FILE)
 
+def example_data():
+    jobs = {
+        1: [
+            [(1, 1), (2, 2)],
+            [(1, 2), (2, 1)]
+        ],
+        2: [
+            [(1, 3), (2, 2)],
+            [(1, 1), (2, 1)]
+        ]
+    }
+    
+    save_ortools(jobs, ORTOOLS_EXAMPLE_DATA_FILE)
+    save_prolog (jobs,  PROLOG_EXAMPLE_DATA_FILE)
+    save_cplex  (jobs,   CPLEX_EXAMPLE_DATA_FILE)
+    return
+
 ######################### Data to Files #########################
 
 def save_data(jobs):
@@ -249,6 +270,7 @@ if __name__ == '__main__':
     
     # Save Easy Data
     save_easy_data()
+    example_data()
     
     # Test
     print('Done.')

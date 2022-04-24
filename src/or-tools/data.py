@@ -1,31 +1,24 @@
 
 import json
 
-from constants import TASK_MACHINE, TASK_DURATION, INFINITE_MACHINE, DataDifficulty
+from constants import DataDifficulty
 
-EASY_DATA   = 'data/fab-easy.json'
-MEDIUM_DATA = 'data/fab.json'
+EXAMPLE_DATA = 'data/example.json'
+EASY_DATA    = 'data/fab-easy.json'
+MEDIUM_DATA  = 'data/fab.json'
 
-def get_data(data_difficulty=DataDifficulty.EASY):
+def get_data(data_difficulty=DataDifficulty.EXAMPLE):
+    data_file = EXAMPLE_DATA
     if data_difficulty == DataDifficulty.EASY:
-        return get_data_easy()
+        data_file = EASY_DATA
     if data_difficulty == DataDifficulty.MEDIUM:
-        return get_data_medium()
+        data_file = MEDIUM_DATA
     if data_difficulty == DataDifficulty.HARD:
-        return get_data_hard()
-
-def get_data_easy():
-    with open(EASY_DATA, 'r') as file:
+        data_file = EXAMPLE_DATA
+    
+    with open(data_file, 'r') as file:
         jobs = json.load(file)
     return jobs
-
-def get_data_medium():
-    with open(MEDIUM_DATA, 'r') as file:
-        jobs = json.load(file)
-    return jobs
-
-def get_data_hard():
-    return get_data_medium()
 
 if __name__ == '__main__':
     # Get Data
