@@ -1,6 +1,9 @@
 
 :-use_module(library(clpfd)).
 
+% infinite_machine(-InfiniteMachine)
+infinite_machine(0).
+
 %%%%%%%%%%%%%%%%%%%%   Task Duration    %%%%%%%%%%%%%%%%%%%%
 
 % task_duration(+Tasks, +Start, +End)
@@ -21,7 +24,13 @@ only_one_task_per_machine_at_a_time([_ | Tasks], [_ | Starts], [_ | Ends], [YesO
     YesOrNo #= 0,
     only_one_task_per_machine_at_a_time(Tasks, Starts, Ends, Chosen).
 only_one_task_per_machine_at_a_time([_-(Machine-_) | Tasks], [Start | Starts], [End | Ends], [YesOrNo | Chosen]) :-
+    YesOrNo #= 1, % Task was Chosen, but the Machine has Infinite Capacity
+    infinite_machine(InfiniteMachine), Machine #= InfiniteMachine, % Infinite Machine
+    no_other_task(Machine, Start-End, Tasks, Starts, Ends, Chosen),
+    only_one_task_per_machine_at_a_time(Tasks, Starts, Ends, Chosen).
+only_one_task_per_machine_at_a_time([_-(Machine-_) | Tasks], [Start | Starts], [End | Ends], [YesOrNo | Chosen]) :-
     YesOrNo #= 1, % Task was Chosen, so no other task can occur in the same machine at the same time
+    infinite_machine(InfiniteMachine), Machine #\= InfiniteMachine, % Not the Infinite Machine
     no_other_task(Machine, Start-End, Tasks, Starts, Ends, Chosen),
     only_one_task_per_machine_at_a_time(Tasks, Starts, Ends, Chosen).
 
