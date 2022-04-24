@@ -1,7 +1,7 @@
 
 :- use_module(library(lists)).
 
-:- ensure_loaded('../../data/fab-easy.pl').
+:- ensure_loaded('../../data/example.pl').
 
 %%%%%%%%%%%%%%%%%%%%        JOBS        %%%%%%%%%%%%%%%%%%%%
 

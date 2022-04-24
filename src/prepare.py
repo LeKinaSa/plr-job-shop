@@ -1,8 +1,9 @@
 
 import openpyxl as excel
 import json, math
+from copy import deepcopy
 
-INFINITE_MACHINE = -1
+INFINITE_MACHINE = 0
 
 TASK_MACHINE  = 0
 TASK_DURATION = 1
@@ -14,6 +15,19 @@ MODEL_TOTALS    = 'total'
 
 ORTOOLS_DATA_FILE = 'data/fab.json'
 PROLOG_DATA_FILE  = 'data/fab.pl'
+CPLEX_DATA_FILE   = 'data/fab.dat'
+
+ORTOOLS_EASY_DATA_FILE = 'data/fab-easy.json'
+PROLOG_EASY_DATA_FILE  = 'data/fab-easy.pl'
+CPLEX_EASY_DATA_FILE   = 'data/fab-easy.dat'
+
+ORTOOLS_EXAMPLE_DATA_FILE = 'data/example.json'
+PROLOG_EXAMPLE_DATA_FILE  = 'data/example.pl'
+CPLEX_EXAMPLE_DATA_FILE   = 'data/example.dat'
+
+LOG = False
+
+######################### Real Data #########################
 
 def get_data():
     # Data Constants
@@ -75,7 +89,8 @@ def get_data():
         if model in models:
             models[model][MODEL_TOTALS] += total
         else:
-            print(f'Model {model} doesn\'t exist')
+            if LOG:
+                print(f'Model {model} doesn\'t exist')
     
     # Remove Models that don't have any pieces to produce
     del_models = []
@@ -83,13 +98,14 @@ def get_data():
         if model[MODEL_TOTALS] == 0:
             del_models.append(model_id)
     for del_model in del_models:
-        print(f'Model {del_model} doesn\'t have any pieces to produce')
+        if LOG:
+            print(f'Model {del_model} doesn\'t have any pieces to produce')
         del models[del_model]
     
     # Finished
     workbook.close()
     return (models, lines)
-    
+
 def get_jobs(models, lines):
     # Each Job has 3 Tasks
     # Task 0 - before the resources arrive
@@ -98,34 +114,82 @@ def get_jobs(models, lines):
 
     jobs = {}
     for model_id, model in models.items():
-        size = model[MODEL_TOTALS]
+        production_time = model[PRODUCTION_TIME] * model[MODEL_TOTALS]
         tasks = []
         alternative_tasks = []
     
         for production_line in model[PRODUCTION_LINE]:
             t = [0, 0]
             t[TASK_MACHINE ] = production_line
-            t[TASK_DURATION] = math.ceil(model[PRODUCTION_TIME] / lines[production_line][CAPACITY])
+            t[TASK_DURATION] = math.ceil(production_time / lines[production_line][CAPACITY])
             alternative_tasks.append(tuple(t))
 
         tasks.append(alternative_tasks)
         
-        jobs[model_id] = (size, tasks)
+        jobs[model_id] = tasks
     return jobs
+
+######################### Easy Data #########################
+
+def get_easy_jobs():
+    jobs = {  # task = (machine_id, processing_time)
+        0: [  # Job 0
+            [(1, 1), (2, 5), (3, 3)],  # task 0 with 3 alternatives
+            [(1, 4), (2, 6), (3, 2)],  # task 1 with 3 alternatives
+            [(1, 3), (2, 1), (3, 2)],  # task 2 with 3 alternatives
+        ],
+        1: [  # Job 1
+            [(1, 3), (2, 4), (3, 2)],
+            [(1, 5), (2, 4), (3, 1)],
+            [(1, 1), (2, 4), (3, 2)],
+        ],
+        2: [  # Job 2
+            [(1, 1), (2, 4), (3, 2)],
+            [(1, 3), (2, 4), (3, 2)],
+            [(1, 1), (2, 5), (3, 3)],
+        ]
+    }
+    return jobs
+
+def save_easy_data():
+    jobs = get_easy_jobs()
+    save_ortools(jobs, ORTOOLS_EASY_DATA_FILE)
+    save_prolog (jobs,  PROLOG_EASY_DATA_FILE)
+    save_cplex  (jobs,   CPLEX_EASY_DATA_FILE)
+
+def example_data():
+    jobs = {
+        1: [
+            [(1, 1), (2, 2)],
+            [(1, 2), (2, 1)]
+        ],
+        2: [
+            [(1, 3), (2, 2)],
+            [(1, 1), (2, 1)]
+        ]
+    }
+    
+    save_ortools(jobs, ORTOOLS_EXAMPLE_DATA_FILE)
+    save_prolog (jobs,  PROLOG_EXAMPLE_DATA_FILE)
+    save_cplex  (jobs,   CPLEX_EXAMPLE_DATA_FILE)
+    return
+
+######################### Data to Files #########################
 
 def save_data(jobs):
     save_ortools(jobs)
     save_prolog(jobs)
+    save_cplex(jobs)
 
-def save_ortools(jobs):
-    with open(ORTOOLS_DATA_FILE, 'w') as file:
+def save_ortools(jobs, ortools_file=ORTOOLS_DATA_FILE):
+    with open(ortools_file, 'w') as file:
         json.dump(jobs, file)
     return
 
-def save_prolog(jobs):
-    lines = get_prolog_lines(jobs)
+def save_prolog(jobs, prolog_file=PROLOG_DATA_FILE):
+    lines = get_prolog_lines(deepcopy(jobs))
     
-    with open(PROLOG_DATA_FILE, 'w') as file:
+    with open(prolog_file, 'w') as file:
         file.writelines(lines)
     return
 
@@ -139,22 +203,74 @@ def get_prolog_lines(jobs):
         '% job(+JobId, +Tasks) | Tasks = [Task] | Task = [AltTask] | AltTask = MachineId-Duration\n'
     ]
 
-    for model_id, (size, tasks) in jobs.items():
+    for model_id, tasks in jobs.items():
         for task in tasks:
             for alt_task_id, alt_task in enumerate(task):
-                duration = alt_task[TASK_DURATION] if alt_task[TASK_MACHINE] == INFINITE_MACHINE else alt_task[TASK_DURATION] * size
-                task[alt_task_id] = f'{alt_task[TASK_MACHINE]}-{duration}'
+                task[alt_task_id] = f'{alt_task[TASK_MACHINE]}-{alt_task[TASK_DURATION]}'
         
         line = f'job({model_id}, {tasks}).\n'
         line = line.replace('\'', '')
         lines.append(line)
     return lines
 
+def save_cplex(jobs, cplex_file=CPLEX_DATA_FILE):
+    lines = get_cplex_lines(jobs)
+    
+    with open(cplex_file, 'w') as file:
+        file.writelines(lines)
+    return
+
+def get_cplex_lines(jobs):
+    ops   = [ 'Ops = {   // OperationID, JobID, JobPosition\n'      ]
+    modes = [ 'Modes = { // OperationID, Machine, ProcessingTime\n' ]
+    
+    for job_id, tasks in jobs.items():
+        for task_id, task in enumerate(tasks):
+            operation_id = job_id * 10 + task_id
+            ops.append(f'  <{operation_id}, {job_id}, {task_id}>,\n')
+            for alt_task in task:
+                modes.append(f'  <{operation_id}, {alt_task[TASK_MACHINE]}, {alt_task[TASK_DURATION]}>,\n')
+    
+    ops  .append('};\n\n')
+    modes.append('};\n')
+    
+    lines = ['Params = <3, 3>;\n\n'] # TODO
+    lines.extend(ops  )
+    lines.extend(modes)
+    return lines
+
+######################### Real Data Statistics #########################
+
+def statistics(jobs): # TODO: fix
+    def n_production_lines(job_tasks):
+        tasks = job_tasks[1]
+        production_tasks = tasks[0]  # TODO: modify to 1 when introducing resource arrival date
+        return len(production_tasks), job_tasks[0]
+
+    jobs = list(map(n_production_lines, jobs.values()))
+    only_one_line = list(map(lambda x: x[1], filter(lambda job: job[0] == 1, jobs)))
+    both_lines    = list(map(lambda x: x[1], filter(lambda job: job[0] == 2, jobs)))
+
+    print()
+    print(f'Number of Different Products: {len(jobs)}')
+    print(f'Number of Products that can only be produced in 1 line: {len(only_one_line)} - {sum(only_one_line)}')
+    print(f'Number of Products that can be produced in both lines:  {len(both_lines   )} - {sum(both_lines   )}')
+
 if __name__ == '__main__':
     # Get Data
     (models, lines) = get_data()
     jobs = get_jobs(models, lines)
+    
+    # Save Data
     save_data(jobs)
+    
+    # Show Statistics
+    if LOG:
+        statistics(jobs)
+    
+    # Save Easy Data
+    save_easy_data()
+    example_data()
     
     # Test
     print('Done.')
