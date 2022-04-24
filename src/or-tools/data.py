@@ -16,19 +16,19 @@ def get_data(data_difficulty=DataDifficulty.EASY):
 def get_data_easy():
     jobs = {  # task = (machine_id, processing_time)
         0: [  # Job 0
-            [(0, 3), (1, 1), (2, 5)],  # task 0 with 3 alternatives
-            [(0, 2), (1, 4), (2, 6)],  # task 1 with 3 alternatives
-            [(0, 2), (1, 3), (2, 1)],  # task 2 with 3 alternatives
+            [(1, 1), (2, 5), (3, 3)],  # task 0 with 3 alternatives
+            [(1, 4), (2, 6), (3, 2)],  # task 1 with 3 alternatives
+            [(1, 3), (2, 1), (3, 2)],  # task 2 with 3 alternatives
         ],
         1: [  # Job 1
-            [(0, 2), (1, 3), (2, 4)],
-            [(0, 1), (1, 5), (2, 4)],
-            [(0, 2), (1, 1), (2, 4)],
+            [(1, 3), (2, 4), (3, 2)],
+            [(1, 5), (2, 4), (3, 1)],
+            [(1, 1), (2, 4), (3, 2)],
         ],
         2: [  # Job 2
-            [(0, 2), (1, 1), (2, 4)],
-            [(0, 2), (1, 3), (2, 4)],
-            [(0, 3), (1, 1), (2, 5)],
+            [(1, 1), (2, 4), (3, 2)],
+            [(1, 3), (2, 4), (3, 2)],
+            [(1, 1), (2, 5), (3, 3)],
         ]
     }
     return jobs
