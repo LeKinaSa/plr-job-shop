@@ -11,14 +11,22 @@ jobshop :-
     get_jobs(Jobs),
     get_max_timespan(Jobs, Horizon),
 
+    % Reset Timer
+    reset_timer,
+
     % Find a possible solution
     jobshop_optimizer(Jobs, Horizon, 0).
 
 % jobshop_optimizer(+Jobs, +Horizon, +Iteration) -> job shop optimizer ; finds the best solution to the job shop problem
 jobshop_optimizer(Jobs, Horizon, Iteration) :-
+    % Print Iteration Number
     nl, nl, write('         Iteration '), write(Iteration), nl,
+
     % Search for the Current ObjFunc
     jobshop_solver(Jobs, Horizon, ObjFunc),
+
+    % Print Iteration Time
+    print_time('         Iteration Time: '),
 
     % Check if there is a Solution with a Smaller ObjFunc
     NewHorizon is ObjFunc - 1,
@@ -26,6 +34,10 @@ jobshop_optimizer(Jobs, Horizon, Iteration) :-
     jobshop_optimizer(Jobs, NewHorizon, NewIteration).
 
 jobshop_optimizer(_, _, _) :-
+    % Print Iteration Time
+    print_time('         Iteration Time: '),
+
+    % Reached Optimal Solution
     write('         Found Solution'), nl, nl, nl.
 
 % jobshop_solver(+Jobs, +Horizon, -ObjFunc) -> job shop solver ; find a solution to the job shop problem

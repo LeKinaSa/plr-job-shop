@@ -14,3 +14,13 @@ print(Tasks, Start, End, Chosen, Horizon, ObjFunc) :-
 divide_tasks([], [], []).
 divide_tasks([_-(M-I) | Tasks], [M | Machines], [I | Intervals]) :-
     divide_tasks(Tasks, Machines, Intervals).
+
+% reset_timer -> Clean / Reset Statistics Timer
+reset_timer :-
+    statistics(total_runtime, _).
+
+% print_time(+Msg) -> Print Statistics Time with a Message
+print_time(Msg) :-
+    statistics(total_runtime, [_, TimeInMilliseconds]),
+    TimeInSeconds is ((TimeInMilliseconds // 10) * 10) / 1000,
+    write(Msg), write(TimeInSeconds), write('s'), nl.
