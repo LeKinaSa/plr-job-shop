@@ -17,7 +17,13 @@ ORTOOLS_DATA_FILE = 'data/fab.json'
 PROLOG_DATA_FILE  = 'data/fab.pl'
 CPLEX_DATA_FILE   = 'data/fab.dat'
 
+ORTOOLS_EASY_DATA_FILE = 'data/fab-easy.json'
+PROLOG_EASY_DATA_FILE  = 'data/fab-easy.pl'
+CPLEX_EASY_DATA_FILE   = 'data/fab-easy.dat'
+
 LOG = False
+
+######################### Real Data #########################
 
 def get_data():
     # Data Constants
@@ -119,21 +125,50 @@ def get_jobs(models, lines):
         jobs[model_id] = tasks
     return jobs
 
+######################### Easy Data #########################
+
+def get_easy_jobs():
+    jobs = {  # task = (machine_id, processing_time)
+        0: [  # Job 0
+            [(1, 1), (2, 5), (3, 3)],  # task 0 with 3 alternatives
+            [(1, 4), (2, 6), (3, 2)],  # task 1 with 3 alternatives
+            [(1, 3), (2, 1), (3, 2)],  # task 2 with 3 alternatives
+        ],
+        1: [  # Job 1
+            [(1, 3), (2, 4), (3, 2)],
+            [(1, 5), (2, 4), (3, 1)],
+            [(1, 1), (2, 4), (3, 2)],
+        ],
+        2: [  # Job 2
+            [(1, 1), (2, 4), (3, 2)],
+            [(1, 3), (2, 4), (3, 2)],
+            [(1, 1), (2, 5), (3, 3)],
+        ]
+    }
+    return jobs
+
+def save_easy_data():
+    jobs = get_easy_jobs()
+    save_ortools(jobs, ORTOOLS_EASY_DATA_FILE)
+    save_prolog (jobs,  PROLOG_EASY_DATA_FILE)
+    save_cplex  (jobs,   CPLEX_EASY_DATA_FILE)
+
+######################### Data to Files #########################
+
 def save_data(jobs):
     save_ortools(jobs)
     save_prolog(jobs)
     save_cplex(jobs)
 
-def save_ortools(jobs):
-    with open(ORTOOLS_DATA_FILE, 'w') as file:
+def save_ortools(jobs, ortools_file=ORTOOLS_DATA_FILE):
+    with open(ortools_file, 'w') as file:
         json.dump(jobs, file)
     return
 
-def save_prolog(jobs):
-    jobs = deepcopy(jobs)
-    lines = get_prolog_lines(jobs)
+def save_prolog(jobs, prolog_file=PROLOG_DATA_FILE):
+    lines = get_prolog_lines(deepcopy(jobs))
     
-    with open(PROLOG_DATA_FILE, 'w') as file:
+    with open(prolog_file, 'w') as file:
         file.writelines(lines)
     return
 
@@ -157,10 +192,10 @@ def get_prolog_lines(jobs):
         lines.append(line)
     return lines
 
-def save_cplex(jobs):
+def save_cplex(jobs, cplex_file=CPLEX_DATA_FILE):
     lines = get_cplex_lines(jobs)
     
-    with open(CPLEX_DATA_FILE, 'w') as file:
+    with open(cplex_file, 'w') as file:
         file.writelines(lines)
     return
 
@@ -175,15 +210,17 @@ def get_cplex_lines(jobs):
             for alt_task in task:
                 modes.append(f'  <{operation_id}, {alt_task[TASK_MACHINE]}, {alt_task[TASK_DURATION]}>,\n')
     
-    ops  .append('};\n')
+    ops  .append('};\n\n')
     modes.append('};\n')
     
-    lines = ['Params = <3, 3>;\n'] # TODO
+    lines = ['Params = <3, 3>;\n\n'] # TODO
     lines.extend(ops  )
     lines.extend(modes)
     return lines
 
-def statistics(jobs):
+######################### Real Data Statistics #########################
+
+def statistics(jobs): # TODO: fix
     def n_production_lines(job_tasks):
         tasks = job_tasks[1]
         production_tasks = tasks[0]  # TODO: modify to 1 when introducing resource arrival date
@@ -209,6 +246,9 @@ if __name__ == '__main__':
     # Show Statistics
     if LOG:
         statistics(jobs)
+    
+    # Save Easy Data
+    save_easy_data()
     
     # Test
     print('Done.')

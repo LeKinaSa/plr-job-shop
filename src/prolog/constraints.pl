@@ -23,7 +23,7 @@ only_one_task_per_machine_at_a_time([], [], [], []).
 only_one_task_per_machine_at_a_time([_ | Tasks], [_ | Starts], [_ | Ends], [YesOrNo | Chosen]) :-
     YesOrNo #= 0,
     only_one_task_per_machine_at_a_time(Tasks, Starts, Ends, Chosen).
-only_one_task_per_machine_at_a_time([_-(Machine-_) | Tasks], [Start | Starts], [End | Ends], [YesOrNo | Chosen]) :-
+only_one_task_per_machine_at_a_time([_-(Machine-_) | Tasks], [_ | Starts], [_ | Ends], [YesOrNo | Chosen]) :-
     YesOrNo #= 1, % Task was Chosen, but the Machine has Infinite Capacity
     infinite_machine(InfiniteMachine), Machine #= InfiniteMachine, % Infinite Machine
     only_one_task_per_machine_at_a_time(Tasks, Starts, Ends, Chosen).

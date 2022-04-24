@@ -3,7 +3,8 @@ import json
 
 from constants import TASK_MACHINE, TASK_DURATION, INFINITE_MACHINE, DataDifficulty
 
-DATA = 'data/fab.json'
+EASY_DATA   = 'data/fab-easy.json'
+MEDIUM_DATA = 'data/fab.json'
 
 def get_data(data_difficulty=DataDifficulty.EASY):
     if data_difficulty == DataDifficulty.EASY:
@@ -14,27 +15,12 @@ def get_data(data_difficulty=DataDifficulty.EASY):
         return get_data_hard()
 
 def get_data_easy():
-    jobs = {  # task = (machine_id, processing_time)
-        0: [  # Job 0
-            [(1, 1), (2, 5), (3, 3)],  # task 0 with 3 alternatives
-            [(1, 4), (2, 6), (3, 2)],  # task 1 with 3 alternatives
-            [(1, 3), (2, 1), (3, 2)],  # task 2 with 3 alternatives
-        ],
-        1: [  # Job 1
-            [(1, 3), (2, 4), (3, 2)],
-            [(1, 5), (2, 4), (3, 1)],
-            [(1, 1), (2, 4), (3, 2)],
-        ],
-        2: [  # Job 2
-            [(1, 1), (2, 4), (3, 2)],
-            [(1, 3), (2, 4), (3, 2)],
-            [(1, 1), (2, 5), (3, 3)],
-        ]
-    }
+    with open(EASY_DATA, 'r') as file:
+        jobs = json.load(file)
     return jobs
 
 def get_data_medium():
-    with open(DATA, 'r') as file:
+    with open(MEDIUM_DATA, 'r') as file:
         jobs = json.load(file)
     return jobs
 
