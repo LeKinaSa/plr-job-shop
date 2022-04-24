@@ -98,19 +98,19 @@ def get_jobs(models, lines):
 
     jobs = {}
     for model_id, model in models.items():
-        size = model[MODEL_TOTALS]
+        production_time = model[PRODUCTION_TIME] * model[MODEL_TOTALS]
         tasks = []
         alternative_tasks = []
     
         for production_line in model[PRODUCTION_LINE]:
             t = [0, 0]
             t[TASK_MACHINE ] = production_line
-            t[TASK_DURATION] = math.ceil(model[PRODUCTION_TIME] / lines[production_line][CAPACITY])
+            t[TASK_DURATION] = math.ceil(production_time / lines[production_line][CAPACITY])
             alternative_tasks.append(tuple(t))
 
         tasks.append(alternative_tasks)
         
-        jobs[model_id] = (size, tasks)
+        jobs[model_id] = tasks
     return jobs
 
 def save_data(jobs):
@@ -139,10 +139,10 @@ def get_prolog_lines(jobs):
         '% job(+JobId, +Tasks) | Tasks = [Task] | Task = [AltTask] | AltTask = MachineId-Duration\n'
     ]
 
-    for model_id, (size, tasks) in jobs.items():
+    for model_id, tasks in jobs.items():
         for task in tasks:
             for alt_task_id, alt_task in enumerate(task):
-                duration = alt_task[TASK_DURATION] if alt_task[TASK_MACHINE] == INFINITE_MACHINE else alt_task[TASK_DURATION] * size
+                duration = alt_task[TASK_DURATION] if alt_task[TASK_MACHINE] == INFINITE_MACHINE else alt_task[TASK_DURATION]
                 task[alt_task_id] = f'{alt_task[TASK_MACHINE]}-{duration}'
         
         line = f'job({model_id}, {tasks}).\n'
@@ -169,8 +169,12 @@ if __name__ == '__main__':
     # Get Data
     (models, lines) = get_data()
     jobs = get_jobs(models, lines)
+    
+    # Save Data
+    save_data(jobs)
+    
+    # Show Statistics
     statistics(jobs)
-    # save_data(jobs)
     
     # Test
     print('Done.')

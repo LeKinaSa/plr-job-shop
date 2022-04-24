@@ -36,36 +36,12 @@ def get_data_easy():
 def get_data_medium():
     with open(DATA, 'r') as file:
         jobs = json.load(file)
-    
-    for job_id, (size, tasks) in jobs.items():
-        for task in tasks:
-            for alt_task in task:
-                if alt_task[TASK_MACHINE] != INFINITE_MACHINE:
-                    alt_task[TASK_DURATION] = alt_task[TASK_DURATION] * size
-        jobs[job_id] = tasks
     return jobs
 
 def get_data_hard():
-    with open(DATA, 'r') as file:
-        jobs = json.load(file)
-    
-    for job_id, (size, tasks) in jobs.items():
-        new_tasks = get_new_tasks(size, tasks)
-        jobs[job_id] = new_tasks
-        
-    return jobs
-
-def get_new_tasks(size, tasks):
-    new_tasks = []
-    for task in tasks:
-        if len(task) == 1 and task[0][TASK_MACHINE] == INFINITE_MACHINE:
-            new_tasks.append(task)
-        else:
-            for _ in range(size):
-                new_tasks.append(task)
-    return new_tasks
+    return get_data_medium()
 
 if __name__ == '__main__':
     # Get Data
-    jobs = get_data(DataDifficulty.HARD)
-    print(jobs)
+    jobs = get_data(DataDifficulty.MEDIUM)
+    print(list(jobs.items())[0])
