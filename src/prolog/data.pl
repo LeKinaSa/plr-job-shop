@@ -3,6 +3,8 @@
 
 :- ensure_loaded('../../data/example.pl').
 
+get_n_machines(3). % TODO: make this function
+
 %%%%%%%%%%%%%%%%%%%%        JOBS        %%%%%%%%%%%%%%%%%%%%
 
 % get_jobs(-Jobs)
@@ -46,47 +48,25 @@ get_min_alternative_task_time([_-Duration | AltTasks], Current, Min) :-
 
 %%%%%%%%%%%%%%%%%%%%       TASKS        %%%%%%%%%%%%%%%%%%%%
 
-% get_tasks(+Jobs, -Tasks)
-get_tasks([], []).
 get_tasks(Jobs, Tasks) :-
-    get_all_tasks(Jobs, [], Tasks).
+    get_tasks(Jobs, [], Tasks).
 
-% get_all_tasks(+Jobs, +Temp, -Tasks)
-get_all_tasks([], Tasks, Tasks).
-get_all_tasks([Job | Jobs], Temp, Tasks) :-
-    get_all_job_tasks(Job, JobTasks),
-    append(Temp, JobTasks, NewTemp),
-    get_all_tasks(Jobs, NewTemp, Tasks).
+get_tasks([], Tasks, Tasks).
+get_tasks([Job | Jobs], Temp, Tasks) :-
+    get_new_tasks(Job, NewTasks),
+    append(Temp, NewTasks, NewTemp),
+    get_tasks(Jobs, NewTemp, Tasks).
 
-% get_job_tasks(+Job, -JobTasks)
-get_all_job_tasks(JobId-Tasks, JobTasks) :-
-    get_job_tasks(JobId, 0, Tasks, [], JobTasks).
+get_new_tasks(JobId-Tasks, NewTasks) :-
+    get_new_tasks(JobId, 0, Tasks, NewTasks).
 
-% get_job_tasks(+JobId, +TaskId, +Tasks, +Temp, -JobTasks)
-get_job_tasks(_, _, [], JobTasks, JobTasks).
-get_job_tasks(JobId, TaskId, [Task | Tasks], Temp, JobTasks) :-
-    get_job_alternative_tasks(JobId, TaskId, 0, Task, AlternativeTasks),
-    append(Temp, AlternativeTasks, NewTemp),
-    NewTaskId is TaskId + 1,
-    get_job_tasks(JobId, NewTaskId, Tasks, NewTemp, JobTasks).
-
-% get_job_alternative_tasks(+JobId, +TaskId, +AltId, -AltTasks)
-get_job_alternative_tasks(_, _, _, [], []).
-get_job_alternative_tasks(JobId, TaskId, AltId, [AltTask | AltTasks], [JobId-TaskId-AltId-AltTask | JobTasks]) :-
-    NewAltId is AltId + 1,
-    get_job_alternative_tasks(JobId, TaskId, NewAltId, AltTasks, JobTasks).
+get_new_tasks(_, _, [], []).
+get_new_tasks(JobId, TaskId, [Task | Tasks], [(JobId-TaskId)-Task | NewTasks]) :-
+    NextTaskId is TaskId + 1,
+    get_new_tasks(JobId, NextTaskId, Tasks, NewTasks).
 
 %%%%%%%%%%%%%%%%%%%% OBJECTIVE FUNCTION %%%%%%%%%%%%%%%%%%%%
-% get_latest_finish(+Ends, +Chosen, -ObjectiveFunction)
-get_latest_finish(Ends, Chosen, ObjectiveFunction) :-
-    get_chosen_finishes(Ends, Chosen, [], ChosenEnds),
-    maximum(ObjectiveFunction, ChosenEnds).
 
-% get_chosen_finishes(+Ends, +Chosen, +Temp, -ChosenEnds)
-get_chosen_finishes([], [], ChosenEnds, ChosenEnds).
-get_chosen_finishes([End | Ends], [YesOrNo | Chosen], Temp, ChosenEnds) :-
-    YesOrNo #= 1,
-    get_chosen_finishes(Ends, Chosen, [End | Temp], ChosenEnds).
-get_chosen_finishes([_ | Ends], [YesOrNo | Chosen], Temp, ChosenEnds) :-
-    YesOrNo #= 0,
-    get_chosen_finishes(Ends, Chosen, Temp, ChosenEnds).
+% get_latest_finish(+Ends, -ObjFunc)
+get_latest_finish(Ends, ObjFunc) :-
+    maximum(ObjFunc, Ends).

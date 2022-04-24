@@ -1,19 +1,22 @@
 
+:- ensure_loaded('helpers.pl').
+
 % print(+Tasks, +Starts, +Ends, +Chosen, +Horizon, +ObjectiveFunctionValue)
 print(Tasks, Start, End, Chosen, Horizon, ObjFunc) :-
-    divide_tasks(Tasks, Machines, Interval),
+    divide_tasks(Tasks, Chosen, Machines, Interval),
     write('Machines '), write(Machines), nl,
-    write('Interval '), write(Interval), nl,
     write('Start    '), write(Start   ), nl,
+    write('Interval '), write(Interval), nl,
     write('End      '), write(End     ), nl,
     write('Chosen   '), write(Chosen  ), nl,
     write('Horizon  '), write(Horizon ), nl,
     write('ObjFunc  '), write(ObjFunc ), nl.
 
-% divide_tasks(+Tasks, -Machines, -Intervals)
-divide_tasks([], [], []).
-divide_tasks([_-(M-I) | Tasks], [M | Machines], [I | Intervals]) :-
-    divide_tasks(Tasks, Machines, Intervals).
+% divide_tasks(+Tasks, +Chosen, -Machines, -Intervals)
+divide_tasks([], [], [], []).
+divide_tasks([_-Task | Tasks], [ChosenAltTask | Chosen], [Machine | Machines], [Interval | Intervals]) :-
+    list_element(ChosenAltTask, Task, Machine-Interval),
+    divide_tasks(Tasks, Chosen, Machines, Intervals).
 
 % reset_timer -> Clean / Reset Statistics Timer
 reset_timer :-
