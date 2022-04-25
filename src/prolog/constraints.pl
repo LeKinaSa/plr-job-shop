@@ -23,7 +23,7 @@ task_duration([_-Task | Tasks], [ChosenAltTask | Chosen], [Start | Starts], [End
 
 % verify_task_duration(+Task, +ChosenAltTask, +Start, +End)
 verify_task_duration(Task, Chosen, Start, End) :-
-    list_element(Chosen, Task, _-Duration), % TODO: this is initializing the Chosen vector
+    pair_element(Chosen, Task, _-Duration), % TODO: this is initializing the Chosen vector
     End #= Start + Duration.
 
 %%%%%%%%%%%%%%%%%%%% 1 Task per Machine %%%%%%%%%%%%%%%%%%%%
@@ -56,5 +56,5 @@ get_cumulative_tasks([Task | Tasks], [ChosenAltTask | ChosenAltTasks], [Start | 
 % get_cumulative_task(+Task, +ChosenAltTask, +Start, +End, -CumulativeTask)
 %   CumulativeTask = task(Start_i, Duration_i, End_i, Machine_i, Task_id_i)
 get_cumulative_task((JobId-TaskId)-AltTasks, ChosenAltTask, Start, End, task(Start, Duration, End, Machine, Identifier)) :-
-    list_element(ChosenAltTask, AltTasks, Machine-Duration), % TODO: this is initializing the Chosen vector
+    pair_element(ChosenAltTask, AltTasks, Machine-Duration), % TODO: this is initializing the Chosen vector
     Identifier #= JobId * 10 + TaskId.

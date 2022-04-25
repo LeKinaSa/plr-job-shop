@@ -14,8 +14,8 @@ select_second_elements([], []).
 select_second_elements([_-SecondElement | ListOfTuples], [SecondElement | ListOfSecondElements]) :-
     select_second_elements(ListOfTuples, ListOfSecondElements).
 
-% list_element(+Index, +List, -Element)
-list_element(Index, List, First-Second) :-
+% pair_element(+Index, +List, -PairElement)
+pair_element(Index, List, First-Second) :-
     divide_list(List,  FirstElementList, SecondElementList),
     element(Index,  FirstElementList,  First),
     element(Index, SecondElementList, Second).
