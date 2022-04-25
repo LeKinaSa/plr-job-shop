@@ -15,9 +15,12 @@ select_second_elements([_-SecondElement | ListOfTuples], [SecondElement | ListOf
     select_second_elements(ListOfTuples, ListOfSecondElements).
 
 % list_element(+Index, +List, -Element)
-list_element(Index, [Element | _], Element) :-
-    Index #= 1.
-list_element(Index, [_ | List], Element) :-
-    Index #> 1,
-    NextIndex #= Index - 1,
-    list_element(NextIndex, List, Element).
+list_element(Index, List, First-Second) :-
+    divide_list(List,  FirstElementList, SecondElementList),
+    element(Index,  FirstElementList,  First),
+    element(Index, SecondElementList, Second).
+
+% divide_list(+List, -FirstElementList, -SecondElementList)
+divide_list([], [], []).
+divide_list([First-Second | List], [First | FirstElementList], [Second | SecondElementList]) :-
+    divide_list(List, FirstElementList, SecondElementList).
