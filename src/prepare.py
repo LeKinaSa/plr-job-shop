@@ -248,14 +248,27 @@ def statistics(jobs, models):
         production_tasks = tasks[PRODUCTION_TASK]
         return len(production_tasks), models[job_tasks[0]][MODEL_TOTALS]
 
-    jobs = list(map(n_production_lines, jobs.items()))
-    only_one_line = list(map(lambda x: x[1], filter(lambda job: job[0] == 1, jobs)))
-    both_lines    = list(map(lambda x: x[1], filter(lambda job: job[0] == 2, jobs)))
+    def get_duration(job_tasks):
+        job_tasks = job_tasks[0]
+        return list(map(lambda x: x[TASK_DURATION], job_tasks))
+
+    job_tasks     = list(map(n_production_lines, jobs.items()))
+    only_one_line = list(map(lambda x: x[1], filter(lambda job: job[0] == 1, job_tasks)))
+    both_lines    = list(map(lambda x: x[1], filter(lambda job: job[0] == 2, job_tasks)))
 
     print()
-    print(f'Number of Different Products: {len(jobs)}')
+    print(f'Number of Different Products: {len(job_tasks)}')
     print(f'Number of Products that can only be produced in 1 line: {len(only_one_line)} - {sum(only_one_line)}')
     print(f'Number of Products that can be produced in both lines:  {len(both_lines   )} - {sum(both_lines   )}')
+
+    min_units = min(min(only_one_line), min(both_lines))
+    max_units = max(max(only_one_line), max(both_lines))
+    print(f'Units per Product: [{min_units}, {max_units}]')
+    
+    task_durations = map(get_duration, jobs.values())
+    durations = [alt_task_duration for alt_task_durations in task_durations for alt_task_duration in alt_task_durations]
+    
+    print(f'Product Duration : [{min(durations)}, {max(durations)}]')
 
 if __name__ == '__main__':
     # Get Data
