@@ -33,16 +33,16 @@ only_one_task_per_machine_at_a_time(Tasks, ChosenAltTasks, Starts, Ends) :-
     get_n_machines(Machines),
 
     get_cumulative_tasks(Tasks, ChosenAltTasks, Starts, Ends, CumulativeTasks),
-    get_capacities(Machines, Capacities),
+    get_machines(Machines, Capacities),
     % get_precedences(Tasks, Precedences),% TODO: uncomment
 
-    multi_cumulative(CumulativeTasks, Capacities, []). % precedences(Precedences) % TODO: add to options
+    cumulatives(CumulativeTasks, Capacities, []). % precedences(Precedences) % TODO: add to options
 
 % get_capacities(+Machines, -Capacities)
-get_capacities(0, []) :- !.
-get_capacities(N, [cumulative(1) | Capacities]) :-
+get_machines(0, []) :- !.
+get_machines(N, [machine(N, 1) | Capacities]) :-
     NextN #= N - 1,
-    get_capacities(NextN, Capacities).
+    get_machines(NextN, Capacities).
 
 % get_precedences(+Tasks, -Precedences) → Precedences = [Task1-Task2], Task1 before Task2
 get_precedences(_, []). % TODO
@@ -54,7 +54,6 @@ get_cumulative_tasks([Task | Tasks], [ChosenAltTask | ChosenAltTasks], [Start | 
     get_cumulative_tasks(Tasks, ChosenAltTasks, Starts, Ends, CumulativeTasks).
 
 % get_cumulative_task(+Task, +ChosenAltTask, +Start, +End, -CumulativeTask)
-%   CumulativeTask = task(Start_i, Duration_i, End_i, Machine_i, Task_id_i)
-get_cumulative_task((JobId-TaskId)-AltTasks, ChosenAltTask, Start, End, task(Start, Duration, End, Machine, Identifier)) :-
-    pair_element(ChosenAltTask, AltTasks, Machine-Duration), % TODO: this is initializing the Chosen vector
-    Identifier #= JobId * 10 + TaskId.
+%   CumulativeTask = task(Start_i, Duration_i, End_i, Resource_Usage, MachineId)
+get_cumulative_task(_-AltTasks, ChosenAltTask, Start, End, task(Start, Duration, End, 1, Machine)) :-
+    pair_element(ChosenAltTask, AltTasks, Machine-Duration). % TODO: this is initializing the Chosen vector
