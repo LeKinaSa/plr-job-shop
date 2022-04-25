@@ -37,6 +37,8 @@ def print_results(solver, status, jobs, starts, presences):
         print('No Solution Found')
 
 def print_optimal_solution(solver, jobs, starts, presences):
+    machine_ends = {}
+    
     # Print Final Solution
     for job_id, job in jobs.items():
         print(f'Job {job_id}:')
@@ -48,9 +50,13 @@ def print_optimal_solution(solver, jobs, starts, presences):
                 if solver.Value(presences[(job_id, task_id, alt_id)]):
                     selected = alt_id
                     duration = alt_task[TASK_DURATION]
-                    machine  = alt_task[TASK_MACHINE]
+                    machine  = alt_task[TASK_MACHINE ]
+                    break
             
             print(f'  task_{task_id} starts at {start_value} (alt {selected}, machine {machine}, duration {duration})')
+            machine_ends[machine] = max(machine_ends.get(machine, 0), start_value + duration)
+    
+    print(machine_ends)
 
 if __name__ == '__main__':
     print('Configured')

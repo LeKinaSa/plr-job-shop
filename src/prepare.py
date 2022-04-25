@@ -241,16 +241,15 @@ def get_cplex_lines(jobs):
     return lines
 
 ######################### Real Data Statistics #########################
+def get_duration(job_tasks):
+        job_tasks = job_tasks[0]
+        return list(map(lambda x: x[TASK_DURATION], job_tasks))
 
 def statistics(jobs, models):
     def n_production_lines(job_tasks):
         tasks = job_tasks[1]
         production_tasks = tasks[PRODUCTION_TASK]
         return len(production_tasks), models[job_tasks[0]][MODEL_TOTALS]
-
-    def get_duration(job_tasks):
-        job_tasks = job_tasks[0]
-        return list(map(lambda x: x[TASK_DURATION], job_tasks))
 
     job_tasks     = list(map(n_production_lines, jobs.items()))
     only_one_line = list(map(lambda x: x[1], filter(lambda job: job[0] == 1, job_tasks)))
@@ -270,6 +269,15 @@ def statistics(jobs, models):
     
     print(f'Product Duration : [{min(durations)}, {max(durations)}]')
 
+def model_statistics(jobs, models, id):
+    print()
+    print(f'Model {id}')
+    print(f'  Production Time per Unit: {models[id][PRODUCTION_TIME]}')
+    print(f'  Number of Units:          {models[id][MODEL_TOTALS]}')
+    print(f'  Production Lines:         {models[id][PRODUCTION_LINE]}')
+    print(f'  Duration:                 {get_duration(jobs[id])}')
+    return
+
 if __name__ == '__main__':
     # Get Data
     (models, lines) = get_data()
@@ -281,6 +289,8 @@ if __name__ == '__main__':
     # Show Statistics
     if LOG:
         statistics(jobs, models)
+        model_statistics(jobs, models, 128)
+        model_statistics(jobs, models, 818)
     
     # Save Easy Data
     save_easy_data()
