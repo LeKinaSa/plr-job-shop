@@ -18,11 +18,11 @@ divide_tasks([_-Task | Tasks], [ChosenAltTask | Chosen], [Machine | Machines], [
     list_element(ChosenAltTask, Task, Machine-Interval),
     divide_tasks(Tasks, Chosen, Machines, Intervals).
 
-% reset_timer -> Clean / Reset Statistics Timer
+% reset_timer → Clean / Reset Statistics Timer
 reset_timer :-
     statistics(total_runtime, _).
 
-% print_time(+Msg) -> Print Statistics Time with a Message
+% print_time(+Msg) → Print Statistics Time with a Message
 print_time(Msg) :-
     statistics(total_runtime, [_, TimeInMilliseconds]),
     TimeInSeconds is ((TimeInMilliseconds // 10) * 10) / 1000,

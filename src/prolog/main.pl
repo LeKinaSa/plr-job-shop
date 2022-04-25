@@ -1,5 +1,5 @@
 
-:-use_module(library(clpfd)).
+:- use_module(library(clpfd)).
 
 :- ensure_loaded('data.pl').
 :- ensure_loaded('output.pl').
@@ -17,7 +17,7 @@ jobshop :-
     % Find a possible solution
     jobshop_optimizer(Jobs, Horizon, 0).
 
-% jobshop_optimizer(+Jobs, +Horizon, +Iteration) -> job shop optimizer ; finds the best solution to the job shop problem
+% jobshop_optimizer(+Jobs, +Horizon, +Iteration) → job shop optimizer ; finds the best solution to the job shop problem
 jobshop_optimizer(Jobs, Horizon, Iteration) :-
     % Print Iteration Number
     nl, nl, write('         Iteration '), write(Iteration), nl,
@@ -40,7 +40,7 @@ jobshop_optimizer(_, _, _) :-
     % Reached Optimal Solution
     write('         Found Solution'), nl, nl, nl.
 
-% jobshop_solver(+Jobs, +Horizon, -ObjFunc) -> job shop solver ; find a solution to the job shop problem
+% jobshop_solver(+Jobs, +Horizon, -ObjFunc) → job shop solver ; find a solution to the job shop problem
 jobshop_solver(Jobs, Horizon, ObjFunc) :-
     % Tasks (Data)
     get_tasks(Jobs, Tasks),
