@@ -4,6 +4,7 @@ import json, math
 from copy import deepcopy
 
 INFINITE_MACHINE = 0
+PRODUCTION_TASK = 0 # TODO: modify to 1 when introducing resource arrival date
 
 TASK_MACHINE  = 0
 TASK_DURATION = 1
@@ -25,7 +26,7 @@ ORTOOLS_EXAMPLE_DATA_FILE = 'data/example.json'
 PROLOG_EXAMPLE_DATA_FILE  = 'data/example.pl'
 CPLEX_EXAMPLE_DATA_FILE   = 'data/example.dat'
 
-LOG = False
+LOG = True
 
 ######################### Real Data #########################
 
@@ -241,13 +242,13 @@ def get_cplex_lines(jobs):
 
 ######################### Real Data Statistics #########################
 
-def statistics(jobs): # TODO: fix
+def statistics(jobs, models):
     def n_production_lines(job_tasks):
         tasks = job_tasks[1]
-        production_tasks = tasks[0]  # TODO: modify to 1 when introducing resource arrival date
-        return len(production_tasks), job_tasks[0]
+        production_tasks = tasks[PRODUCTION_TASK]
+        return len(production_tasks), models[job_tasks[0]][MODEL_TOTALS]
 
-    jobs = list(map(n_production_lines, jobs.values()))
+    jobs = list(map(n_production_lines, jobs.items()))
     only_one_line = list(map(lambda x: x[1], filter(lambda job: job[0] == 1, jobs)))
     both_lines    = list(map(lambda x: x[1], filter(lambda job: job[0] == 2, jobs)))
 
@@ -266,7 +267,7 @@ if __name__ == '__main__':
     
     # Show Statistics
     if LOG:
-        statistics(jobs)
+        statistics(jobs, models)
     
     # Save Easy Data
     save_easy_data()
