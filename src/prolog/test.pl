@@ -11,7 +11,7 @@ jobshop :-
     reset_timer,
 
     % Jobs and Horizon (Data)
-    get_n_machines(Machines),
+    n_machines(Machines),
     get_jobs(Jobs)   , get_tasks(  Jobs ,   Tasks),
     length(Tasks , N), get_horizon(Tasks, Horizon),
 
@@ -22,11 +22,8 @@ jobshop :-
 
     % Constraints
     only_one_chosen_alternative_task(   Tasks, Chosen),
-    write(Chosen), nl,
-    task_duration(                      Tasks, Chosen, Start, End), % TODO: verify that the Chosen is not initialized here
-    write(Chosen), nl,
-    only_one_task_per_machine_at_a_time(Tasks, Chosen, Start, End), % TODO: it is stopping the execution
-    write(Chosen), nl,
+    task_duration(                      Tasks, Chosen, Start, End),
+    only_one_task_per_machine_at_a_time(Tasks, Chosen, Start, End),
 
     % Solve
     get_latest_finish( End, ObjFunc),

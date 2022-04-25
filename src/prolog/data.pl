@@ -3,7 +3,7 @@
 
 :- ensure_loaded('../../data/example.pl').
 
-get_n_machines(3). % TODO: make this function
+n_machines(3). % TODO: make this function
 
 %%%%%%%%%%%%%%%%%%%%        JOBS        %%%%%%%%%%%%%%%%%%%%
 

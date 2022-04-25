@@ -23,29 +23,25 @@ task_duration([_-Task | Tasks], [ChosenAltTask | Chosen], [Start | Starts], [End
 
 % verify_task_duration(+Task, +ChosenAltTask, +Start, +End)
 verify_task_duration(Task, Chosen, Start, End) :-
-    pair_element(Chosen, Task, _-Duration), % TODO: this is initializing the Chosen vector
+    pair_element(Chosen, Task, _-Duration),
     End #= Start + Duration.
 
 %%%%%%%%%%%%%%%%%%%% 1 Task per Machine %%%%%%%%%%%%%%%%%%%%
 
 % only_one_task_per_machine_at_a_time(+Tasks, +ChosenAltTasks, +Starts, +Ends)
 only_one_task_per_machine_at_a_time(Tasks, ChosenAltTasks, Starts, Ends) :-
-    get_n_machines(Machines),
+    n_machines(NumberOfMachines),
 
     get_cumulative_tasks(Tasks, ChosenAltTasks, Starts, Ends, CumulativeTasks),
-    get_machines(Machines, Capacities),
-    % get_precedences(Tasks, Precedences),% TODO: uncomment
+    get_machines(NumberOfMachines, Machines),
 
-    cumulatives(CumulativeTasks, Capacities, []). % precedences(Precedences) % TODO: add to options
+    cumulatives(CumulativeTasks, Machines, []). % TODO: check if need to change limit to upper / lower
 
-% get_capacities(+Machines, -Capacities)
+% get_machines(+NumberOfMachines, -Machines) → Machines = [machine(MachineId, Limit)]
 get_machines(0, []) :- !.
-get_machines(N, [machine(N, 1) | Capacities]) :-
-    NextN #= N - 1,
-    get_machines(NextN, Capacities).
-
-% get_precedences(+Tasks, -Precedences) → Precedences = [Task1-Task2], Task1 before Task2
-get_precedences(_, []). % TODO
+get_machines(MachineId, [machine(MachineId, 1) | Machines]) :-
+    NextMachineId #= MachineId - 1,
+    get_machines(NextMachineId, Machines).
 
 % get_cumulative_tasks(+Tasks, +ChosenAltTasks, +Starts, +Ends, -CumulativeTasks)
 get_cumulative_tasks([], [], [], [], []).
@@ -56,4 +52,4 @@ get_cumulative_tasks([Task | Tasks], [ChosenAltTask | ChosenAltTasks], [Start | 
 % get_cumulative_task(+Task, +ChosenAltTask, +Start, +End, -CumulativeTask)
 %   CumulativeTask = task(Start_i, Duration_i, End_i, Resource_Usage, MachineId)
 get_cumulative_task(_-AltTasks, ChosenAltTask, Start, End, task(Start, Duration, End, 1, Machine)) :-
-    pair_element(ChosenAltTask, AltTasks, Machine-Duration). % TODO: this is initializing the Chosen vector
+    pair_element(ChosenAltTask, AltTasks, Machine-Duration).
