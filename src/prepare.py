@@ -4,6 +4,7 @@ import json, math
 from copy import deepcopy
 
 INFINITE_MACHINE = 0
+PRODUCTION_TASK = 0 # TODO: modify to 1 when introducing resource arrival date
 
 TASK_MACHINE  = 0
 TASK_DURATION = 1
@@ -25,7 +26,7 @@ ORTOOLS_EXAMPLE_DATA_FILE = 'data/example.json'
 PROLOG_EXAMPLE_DATA_FILE  = 'data/example.pl'
 CPLEX_EXAMPLE_DATA_FILE   = 'data/example.dat'
 
-LOG = False
+LOG = True
 
 ######################### Real Data #########################
 
@@ -240,21 +241,42 @@ def get_cplex_lines(jobs):
     return lines
 
 ######################### Real Data Statistics #########################
+def get_duration(job_tasks):
+        job_tasks = job_tasks[0]
+        return list(map(lambda x: x[TASK_DURATION], job_tasks))
 
-def statistics(jobs): # TODO: fix
+def statistics(jobs, models):
     def n_production_lines(job_tasks):
         tasks = job_tasks[1]
-        production_tasks = tasks[0]  # TODO: modify to 1 when introducing resource arrival date
-        return len(production_tasks), job_tasks[0]
+        production_tasks = tasks[PRODUCTION_TASK]
+        return len(production_tasks), models[job_tasks[0]][MODEL_TOTALS]
 
-    jobs = list(map(n_production_lines, jobs.values()))
-    only_one_line = list(map(lambda x: x[1], filter(lambda job: job[0] == 1, jobs)))
-    both_lines    = list(map(lambda x: x[1], filter(lambda job: job[0] == 2, jobs)))
+    job_tasks     = list(map(n_production_lines, jobs.items()))
+    only_one_line = list(map(lambda x: x[1], filter(lambda job: job[0] == 1, job_tasks)))
+    both_lines    = list(map(lambda x: x[1], filter(lambda job: job[0] == 2, job_tasks)))
 
     print()
-    print(f'Number of Different Products: {len(jobs)}')
+    print(f'Number of Different Products: {len(job_tasks)}')
     print(f'Number of Products that can only be produced in 1 line: {len(only_one_line)} - {sum(only_one_line)}')
     print(f'Number of Products that can be produced in both lines:  {len(both_lines   )} - {sum(both_lines   )}')
+
+    min_units = min(min(only_one_line), min(both_lines))
+    max_units = max(max(only_one_line), max(both_lines))
+    print(f'Units per Product: [{min_units}, {max_units}]')
+    
+    task_durations = map(get_duration, jobs.values())
+    durations = [alt_task_duration for alt_task_durations in task_durations for alt_task_duration in alt_task_durations]
+    
+    print(f'Product Duration : [{min(durations)}, {max(durations)}]')
+
+def model_statistics(jobs, models, id):
+    print()
+    print(f'Model {id}')
+    print(f'  Production Time per Unit: {models[id][PRODUCTION_TIME]}')
+    print(f'  Number of Units:          {models[id][MODEL_TOTALS]}')
+    print(f'  Production Lines:         {models[id][PRODUCTION_LINE]}')
+    print(f'  Duration:                 {get_duration(jobs[id])}')
+    return
 
 if __name__ == '__main__':
     # Get Data
@@ -266,7 +288,9 @@ if __name__ == '__main__':
     
     # Show Statistics
     if LOG:
-        statistics(jobs)
+        statistics(jobs, models)
+        model_statistics(jobs, models, 128)
+        model_statistics(jobs, models, 818)
     
     # Save Easy Data
     save_easy_data()
