@@ -23,6 +23,7 @@ jobshop :-
     only_one_chosen_alternative_task(   Tasks, Chosen),
     task_duration(                      Tasks, Chosen, Start, End),
     only_one_task_per_machine_at_a_time(Tasks, Chosen, Start, End),
+    task_precedence(                    Tasks,         Start, End),
 
     % Solve
     get_latest_finish( End, ObjFunc),

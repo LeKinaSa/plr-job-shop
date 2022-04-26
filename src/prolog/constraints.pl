@@ -51,6 +51,21 @@ get_cumulative_tasks([Task | Tasks], [ChosenAltTask | ChosenAltTasks], [Start | 
     get_cumulative_tasks(Tasks, ChosenAltTasks, Starts, Ends, CumulativeTasks).
 
 % get_cumulative_task(+Task, +ChosenAltTask, +Start, +End, -CumulativeTask)
-%   CumulativeTask = task(Start_i, Duration_i, End_i, Resource_Usage, MachineId)
+%   CumulativeTask = [task(Start_i, Duration_i, End_i, Resource_Usage, MachineId)]
 get_cumulative_task(_-AltTasks, ChosenAltTask, Start, End, task(Start, Duration, End, 1, Machine)) :-
     pair_element(ChosenAltTask, AltTasks, Machine-Duration).
+
+%%%%%%%%%%%%%%%%%%%% Task Precedence %%%%%%%%%%%%%%%%%%%%
+
+% task_precedence(+Tasks, +Starts, +Ends)
+task_precedence([_], [_], [_]).
+task_precedence([Task1, Task2 | Tasks], [Start1, Start2 | Starts], [End1, End2 | Ends]) :-
+    precedence(Task1, Task2, Start1-Start2, End1-End2),
+    task_precedence([Task2 | Tasks], [Start2 | Starts], [End2 | Ends]).
+
+% precedence(+Task1, +Task2, +Starts, +Ends)
+%   Assumes that the tasks are ordered in JobId-TaskId
+precedence(_, (_-0)-_, _, _).
+precedence(_, (_-TaskId)-_, _-Start2, End1-_) :-
+    TaskId > 0,
+    Start2 #>= End1.
