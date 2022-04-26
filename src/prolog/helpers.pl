@@ -9,11 +9,6 @@ start_trace :-
 stop_trace :-
     prolog_flag(debugging, _, off).
 
-% select_second_elements(+ListOfTuples, -ListOfSecondElements)
-select_second_elements([], []).
-select_second_elements([_-SecondElement | ListOfTuples], [SecondElement | ListOfSecondElements]) :-
-    select_second_elements(ListOfTuples, ListOfSecondElements).
-
 % pair_element(+Index, +List, -PairElement)
 pair_element(Index, List, First-Second) :-
     divide_list(List,  FirstElementList, SecondElementList),

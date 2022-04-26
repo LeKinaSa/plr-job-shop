@@ -21,7 +21,7 @@ get_horizon(Tasks, Horizon) :-
 % get_horizon(+Tasks, +Temp, -Horizon)
 get_horizon([], Horizon, Horizon).
 get_horizon([_-AltTasks | Tasks], Temp, Horizon) :-
-    select_second_elements(AltTasks, AltTaskDurations),
+    divide_list(AltTasks, _, AltTaskDurations),
     minimum(Partial, AltTaskDurations),
     NewTemp #= Temp + Partial,
     get_horizon(Tasks, NewTemp, Horizon).

@@ -31,4 +31,5 @@ jobshop :-
     labeling([minimize(ObjFunc)], Vars),
 
     % Print
-    print(Tasks, Start, End, Chosen, Horizon, ObjFunc).
+    print(Tasks, Start, End, Chosen, Horizon, ObjFunc),
+    print_time('Solving Time: ').
