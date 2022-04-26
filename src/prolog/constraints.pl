@@ -1,8 +1,8 @@
 
 :- use_module(library(clpfd)).
 
-% infinite_machine(-InfiniteMachine)
-infinite_machine(0).
+% infinite_machine(-InfiniteMachineId, -InfiniteMachineCapacity)
+infinite_machine(0, 1000).
 
 %%%%%%%%%%%%%%%%%%%% 1 Alternative Task %%%%%%%%%%%%%%%%%%%%
 
@@ -38,7 +38,8 @@ only_one_task_per_machine_at_a_time(Tasks, ChosenAltTasks, Starts, Ends) :-
     cumulatives(CumulativeTasks, Machines, [bound(upper)]).
 
 % get_machines(+NumberOfMachines, -Machines) → Machines = [machine(MachineId, Limit)]
-get_machines(0, []) :- !.
+get_machines(0, [machine(InfiniteMachineId, InfiniteMachineCapacity)]) :-
+    infinite_machine(InfiniteMachineId, InfiniteMachineCapacity), !.
 get_machines(MachineId, [machine(MachineId, 1) | Machines]) :-
     NextMachineId #= MachineId - 1,
     get_machines(NextMachineId, Machines).
