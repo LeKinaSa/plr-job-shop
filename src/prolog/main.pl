@@ -29,7 +29,7 @@ jobshop :-
     get_latest_finish( End, ObjFunc),
     append(Start  , End   , VarsAux),
     append(Chosen, VarsAux, Vars   ),
-    labeling([minimize(ObjFunc)], Vars),
+    labeling([], Vars), % minimize(ObjFunc) → slower than it should be, may benefit from more constraints
 
     % Print
     print(Tasks, Start, End, Chosen, Horizon, ObjFunc),
