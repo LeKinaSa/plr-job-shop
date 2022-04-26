@@ -35,7 +35,7 @@ only_one_task_per_machine_at_a_time(Tasks, ChosenAltTasks, Starts, Ends) :-
     get_cumulative_tasks(Tasks, ChosenAltTasks, Starts, Ends, CumulativeTasks),
     get_machines(NumberOfMachines, Machines),
 
-    cumulatives(CumulativeTasks, Machines, []). % TODO: check if need to change limit to upper / lower
+    cumulatives(CumulativeTasks, Machines, [bound(upper)]).
 
 % get_machines(+NumberOfMachines, -Machines) → Machines = [machine(MachineId, Limit)]
 get_machines(0, []) :- !.
