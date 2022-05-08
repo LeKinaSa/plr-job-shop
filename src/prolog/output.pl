@@ -3,7 +3,9 @@
 
 % print(+Tasks, +Starts, +Ends, +Chosen, +Horizon, +ObjectiveFunctionValue)
 print(Tasks, Start, End, Chosen, Horizon, ObjFunc) :-
-    divide_tasks(Tasks, Chosen, Machines, Interval),
+    divide_tasks(Tasks, Chosen, JobIds, TaskIds, Machines, Interval),
+    write('Jobs     '), write(JobIds  ), nl,
+    write('Tasks    '), write(TaskIds ), nl,
     write('Machines '), write(Machines), nl,
     write('Start    '), write(Start   ), nl,
     write('Interval '), write(Interval), nl,
@@ -12,11 +14,11 @@ print(Tasks, Start, End, Chosen, Horizon, ObjFunc) :-
     write('Horizon  '), write(Horizon ), nl,
     write('ObjFunc  '), write(ObjFunc ), nl.
 
-% divide_tasks(+Tasks, +Chosen, -Machines, -Intervals)
-divide_tasks([], [], [], []).
-divide_tasks([_-Task | Tasks], [ChosenAltTask | Chosen], [Machine | Machines], [Interval | Intervals]) :-
+% divide_tasks(+Tasks, +Chosen, -JobIds, -TaskIds, -Machines, -Intervals)
+divide_tasks([], [], [], [], [], []).
+divide_tasks([(JobId-TaskId)-Task | Tasks], [ChosenAltTask | Chosen], [JobId | JobIds], [TaskId | TaskIds], [Machine | Machines], [Interval | Intervals]) :-
     pair_element(ChosenAltTask, Task, Machine-Interval),
-    divide_tasks(Tasks, Chosen, Machines, Intervals).
+    divide_tasks(Tasks, Chosen, JobIds, TaskIds, Machines, Intervals).
 
 % reset_timer → Clean / Reset Statistics Timer
 reset_timer :-
