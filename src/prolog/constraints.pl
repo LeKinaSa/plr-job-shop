@@ -69,3 +69,43 @@ precedence(_, (_-0)-_, _, _).
 precedence(_, (_-TaskId)-_, _-Start2, End1-_) :-
     TaskId > 0,
     Start2 #>= End1.
+
+%%%%%%%%%%%%%%%%%%%% Eliminate Symmetries %%%%%%%%%%%%%%%%%%%%
+
+% eliminate_symmetries(+Tasks, +Chosen, +Start)
+eliminate_symmetries(Tasks, Chosen, Start) :-
+    n_machines(NumberOfMachines),
+    separate_machines(NumberOfMachines, Tasks, Chosen, Start, Machines),
+    eliminate_symmetries_per_machine(Machines).
+
+% separate_machines(+MachineId, +Tasks, +Chosen, +Start, -Machines)
+separate_machines(0, _, _, _, []).
+separate_machines(MachineId, Tasks, Chosen, Start, [Machine | Machines]) :-
+    MachineId > 0,
+    get_tasks_by_machine(MachineId, Tasks, Chosen, Start, Machine),
+    NextMachineId #= MachineId - 1,
+    separate_machines(NextMachineId, Tasks, Chosen, Start, Machines).
+
+% get_tasks_by_machine(+MachineId, +Tasks, +Chosen, +Start, -TasksOnTheMachine)
+get_tasks_by_machine(_, [], [], [], []).
+get_tasks_by_machine(MachineId, [(JobId-_)-AltTasks | Tasks], [ChosenAltTask | ChosenAltTasks], [Start | Starts], [JobId-Start | TasksOnTheMachine]) :-
+    pair_element(ChosenAltTask, AltTasks, Machine-_),
+    Machine #= MachineId,
+    get_tasks_by_machine(MachineId, Tasks, ChosenAltTasks, Starts, TasksOnTheMachine).
+get_tasks_by_machine(MachineId, [_-AltTasks | Tasks], [ChosenAltTask | ChosenAltTasks], [_ | Starts], TasksOnTheMachine) :-
+    pair_element(ChosenAltTask, AltTasks, Machine-_),
+    Machine #\= MachineId,
+    get_tasks_by_machine(MachineId, Tasks, ChosenAltTasks, Starts, TasksOnTheMachine).
+
+% eliminate_symmetries_per_machine(+Machines) → Machine = JobId-Start
+eliminate_symmetries_per_machine([]).
+eliminate_symmetries_per_machine([Machine | Machines]) :-
+    order(Machine),
+    eliminate_symmetries_per_machine(Machines).
+
+% order(Machine)
+order([]).
+order([_]).
+order([JobId1-Start1, JobId2-Start2 | TasksOnTheMachine]) :-
+    JobId1 #< JobId2 #<=> Start1 #< Start2,
+    order([JobId2-Start2 | TasksOnTheMachine]).

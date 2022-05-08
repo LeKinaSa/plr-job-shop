@@ -1,7 +1,7 @@
 
 :- use_module(library(clpfd)).
 
-:- ensure_loaded('../../data/example.pl').
+:- ensure_loaded('../../data/fab.pl').
 
 n_machines(3). % TODO: make this function
 
