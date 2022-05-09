@@ -1,6 +1,7 @@
 
 :- use_module(library(clpfd)).
 
+:- ensure_loaded('helpers.pl').
 :- ensure_loaded('data.pl').
 :- ensure_loaded('output.pl').
 :- ensure_loaded('constraints.pl').
@@ -23,15 +24,12 @@ jobshop :-
     only_one_chosen_alternative_task(   Tasks, Chosen),
     task_duration(                      Tasks, Chosen, Start, End),
     only_one_task_per_machine_at_a_time(Tasks, Chosen, Start, End),
-    task_precedence(                    Tasks,         Start, End),
-    eliminate_symmetries(               Tasks, Chosen, Start),
 
     % Solve
     get_latest_finish( End, ObjFunc),
     append(Start  , End   , VarsAux),
     append(Chosen, VarsAux, Vars   ),
-    labeling([], Vars), % minimize(ObjFunc) → slower than it should be, may benefit from more constraints
+    labeling([], Vars),
 
     % Print
-    print(Tasks, Start, End, Chosen, Horizon, ObjFunc),
-    print_time('Solving Time: ').
+    print(Tasks, Start, End, Chosen, Horizon, ObjFunc).

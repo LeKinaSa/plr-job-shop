@@ -8,7 +8,7 @@ from constants import TASK_DURATION, TASK_MACHINE, DataDifficulty
 
 def jobshop():
     # Get Data
-    jobs = get_data(DataDifficulty.EXAMPLE)
+    jobs = get_data(DataDifficulty.MEDIUM)
 
     # Compute Horizon (worst case scenario)
     horizon = 0
@@ -21,7 +21,7 @@ def jobshop():
     model = cp_model.CpModel()
 
     # Global Storage of Variables
-    intervals_per_resources = collections.defaultdict(list)
+    intervals_per_machines = collections.defaultdict(list)
     starts    = {}  # indexed by (job_id, task_id)
     presences = {}  # indexed by (job_id, task_id, alt_id)
     job_ends  = []
@@ -67,7 +67,7 @@ def jobshop():
                     model.Add(end      == l_end     ).OnlyEnforceIf(l_presence)
 
                     # Add the Alternative Interval to the Correct Machine
-                    intervals_per_resources[alt_task[TASK_MACHINE]].append(l_interval)
+                    intervals_per_machines[alt_task[TASK_MACHINE]].append(l_interval)
 
                     # Store the Presence
                     presences[(job_id, task_id, alt_id)] = l_presence
@@ -77,14 +77,14 @@ def jobshop():
             else:
                 # Only 1 Possible Alternative
                 alt_task = task[0]
-                intervals_per_resources[alt_task[TASK_MACHINE]].append(interval)
+                intervals_per_machines[alt_task[TASK_MACHINE]].append(interval)
                 presences[(job_id, task_id, 0)] = model.NewConstant(1)
 
         # Store the End
         job_ends.append(previous_end)
 
     # Constraints: Two Jobs on the Same Machine can't overlap
-    for intervals in intervals_per_resources.values():
+    for intervals in intervals_per_machines.values():
         if len(intervals) > 1:
             model.AddNoOverlap(intervals)
 
