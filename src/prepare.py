@@ -154,9 +154,8 @@ def get_easy_jobs():
 
 def save_easy_data():
     jobs = get_easy_jobs()
-    save_ortools(jobs, ORTOOLS_EASY_DATA_FILE)
-    save_prolog (jobs,  PROLOG_EASY_DATA_FILE)
-    save_cplex  (jobs,   CPLEX_EASY_DATA_FILE)
+    save_data(jobs, len(jobs[0]), ORTOOLS_EASY_DATA_FILE, PROLOG_EASY_DATA_FILE, CPLEX_EASY_DATA_FILE)
+    return
 
 def example_data():
     jobs = {
@@ -170,24 +169,22 @@ def example_data():
         ]
     }
     
-    save_ortools(jobs, ORTOOLS_EXAMPLE_DATA_FILE)
-    save_prolog (jobs,  PROLOG_EXAMPLE_DATA_FILE)
-    save_cplex  (jobs,   CPLEX_EXAMPLE_DATA_FILE)
+    save_data(jobs, len(jobs[1]), ORTOOLS_EXAMPLE_DATA_FILE, PROLOG_EXAMPLE_DATA_FILE, CPLEX_EXAMPLE_DATA_FILE)
     return
 
 ######################### Data to Files #########################
 
-def save_data(jobs):
-    save_ortools(jobs)
-    save_prolog(jobs)
-    save_cplex(jobs)
+def save_data(jobs, n_lines, ortools_file=ORTOOLS_DATA_FILE, prolog_file=PROLOG_DATA_FILE, cplex_file=CPLEX_DATA_FILE):
+    save_ortools(jobs         , ortools_file)
+    save_prolog (jobs         ,  prolog_file)
+    save_cplex  (jobs, n_lines,   cplex_file)
 
-def save_ortools(jobs, ortools_file=ORTOOLS_DATA_FILE):
+def save_ortools(jobs, ortools_file):
     with open(ortools_file, 'w') as file:
         json.dump(jobs, file)
     return
 
-def save_prolog(jobs, prolog_file=PROLOG_DATA_FILE):
+def save_prolog(jobs, prolog_file):
     lines = get_prolog_lines(deepcopy(jobs))
     
     with open(prolog_file, 'w') as file:
@@ -214,14 +211,14 @@ def get_prolog_lines(jobs):
         lines.append(line)
     return lines
 
-def save_cplex(jobs, cplex_file=CPLEX_DATA_FILE):
-    lines = get_cplex_lines(jobs)
+def save_cplex(jobs, n_lines, cplex_file):
+    lines = get_cplex_lines(jobs, n_lines)
     
     with open(cplex_file, 'w') as file:
         file.writelines(lines)
     return
 
-def get_cplex_lines(jobs):
+def get_cplex_lines(jobs, n_lines):
     ops   = [ 'Ops = {   // OperationID, JobID, JobPosition\n'      ]
     modes = [ 'Modes = { // OperationID, Machine, ProcessingTime\n' ]
     
@@ -235,12 +232,13 @@ def get_cplex_lines(jobs):
     ops  .append('};\n\n')
     modes.append('};\n')
     
-    lines = ['Params = <3, 3>;\n\n'] # TODO
+    lines = [f'Params = <{len(jobs)}, {n_lines}>;\n\n'] # TODO
     lines.extend(ops  )
     lines.extend(modes)
     return lines
 
 ######################### Real Data Statistics #########################
+
 def get_duration(job_tasks):
         job_tasks = job_tasks[0]
         return list(map(lambda x: x[TASK_DURATION], job_tasks))
@@ -284,7 +282,7 @@ if __name__ == '__main__':
     jobs = get_jobs(models, lines)
     
     # Save Data
-    save_data(jobs)
+    save_data(jobs, len(lines))
     
     # Show Statistics
     if LOG:
