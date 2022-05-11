@@ -2,20 +2,14 @@
 import collections
 from ortools.sat.python import cp_model
 
-from data import get_data
+from data import get_data, get_horizon
 from output import IntermediateSolutionPrinter as SolutionPrinter, print_statistics, print_results
 from constants import TASK_DURATION, TASK_MACHINE, DataDifficulty
 
 def jobshop():
-    # Get Data
+    # Get Data and Horizon (worst case scenario)
     jobs = get_data(DataDifficulty.MEDIUM)
-
-    # Compute Horizon (worst case scenario)
-    horizon = 0
-    for job in jobs.values():
-        for task in job:
-            max_task_duration = min([alt_task[TASK_DURATION] for alt_task in task])
-            horizon += max_task_duration
+    horizon = get_horizon(jobs)
 
     # Create the Model
     model = cp_model.CpModel()
