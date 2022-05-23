@@ -1,13 +1,9 @@
 
-from ortools.sat.python.cp_model import CpModel, CpSolver, OPTIMAL, FEASIBLE
+from ortools.sat.python.cp_model import CpModel, CpSolver
 
 from data import get_data
 from output import IntermediateSolutionPrinter as SolutionPrinter, print_statistics, print_results
-from constants import TASK, MIN_START, MAX_END
-
-START_VAR     = 'start'
-END_VAR       = 'end'
-DURATION_VAR  = 'duration'
+from constants import TASK, MIN_START, MAX_END, START_VAR, END_VAR, DURATION_VAR, PRESENCES_VAR
 
 def jobshop():
     (jobs, horizon) = get_data()
@@ -32,7 +28,7 @@ def jobshop():
     intervals_per_machines = {}
     for job, info in jobs.items():
         task = info[TASK]
-        presences = []
+        jobs[job][PRESENCES_VAR] = []
         for machine_id, alt_duration in task:
             alt_start = model.NewIntVar(0, horizon, '')
             alt_end   = model.NewIntVar(0, horizon, '')
@@ -42,7 +38,7 @@ def jobshop():
             model.Add(jobs[job][     END_VAR] == alt_end     ).OnlyEnforceIf(alt_present)
             model.Add(jobs[job][DURATION_VAR] == alt_duration).OnlyEnforceIf(alt_present)
 
-            presences.append(alt_present)
+            jobs[job][PRESENCES_VAR].append(alt_present)
             
             # Task Duration
             alt_interval = model.NewOptionalIntervalVar(alt_start, alt_duration, alt_end, alt_present, '')
@@ -51,7 +47,7 @@ def jobshop():
             intervals_per_machines[machine_id] = intervals_per_machines.get(machine_id, [])
             intervals_per_machines[machine_id].append(alt_interval)
 
-        model.AddExactlyOne(presences)
+        model.AddExactlyOne(jobs[job][PRESENCES_VAR])
 
     # Only 1 Task Per Machine at a Time
     for intervals in intervals_per_machines.values():
@@ -72,7 +68,7 @@ def jobshop():
     
     # Print Results
     print_statistics(solver, status)
-    #print_results(solver, status, jobs, starts, presences)
+    print_results(solver, status, jobs, makespan)
 
 if __name__ == '__main__':
     jobshop()

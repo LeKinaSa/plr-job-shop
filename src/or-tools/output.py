@@ -1,7 +1,7 @@
 
-from ortools.sat.python.cp_model import CpSolverSolutionCallback, OPTIMAL as OPTIMAL_SOLUTION
+from ortools.sat.python.cp_model import CpSolverSolutionCallback, OPTIMAL, FEASIBLE
 
-from constants import TASK_MACHINE, TASK_DURATION
+from constants import TASK_MACHINE, TASK_DURATION, TASK, START_VAR, PRESENCES_VAR
 
 class IntermediateSolutionPrinter(CpSolverSolutionCallback):
     """Print intermediate solutions"""
@@ -27,36 +27,28 @@ def print_statistics(solver, status):
     print(f'  Optimal objective value: {solver.ObjectiveValue()}')
     print('--------------------------------')
     
-def print_results(solver, status, jobs, starts, presences):
+def print_results(solver, status, jobs, makespan):
     # Print the results
-    if status == OPTIMAL_SOLUTION:
+    if status == OPTIMAL or status == FEASIBLE:
         print('Found a Solution')
         # Print Solution
-        print_optimal_solution(solver, jobs, starts, presences)
+        print_optimal_solution(solver, jobs, makespan)
     else:
         print('No Solution Found')
 
-def print_optimal_solution(solver, jobs, starts, presences):
-    machine_ends = {}
-    
+def print_optimal_solution(solver, jobs, makespan):    
     # Print Final Solution
-    for job_id, job in jobs.items():
-        print(f'Job {job_id}:')
-        for task_id, task in enumerate(job):
-            start_value = solver.Value(starts[(job_id, task_id)])
-            (machine, duration, selected) = (-1, -1, -1)
-            
-            for alt_id, alt_task in enumerate(task):
-                if solver.Value(presences[(job_id, task_id, alt_id)]):
-                    selected = alt_id
-                    duration = alt_task[TASK_DURATION]
-                    machine  = alt_task[TASK_MACHINE ]
-                    break
-            
-            print(f'  task_{task_id} starts at {start_value} (alt {selected}, machine {machine}, duration {duration})')
-            machine_ends[machine] = max(machine_ends.get(machine, 0), start_value + duration)
-    
-    print(machine_ends)
+    for job, info in jobs.items():
+        task      = info[         TASK]
+        start     = info[    START_VAR]
+        presences = info[PRESENCES_VAR]
 
-if __name__ == '__main__':
-    print('Configured')
+        (machine, duration) = (-1, -1)
+        for (alt_task, presence) in zip(task, presences):
+            if solver.Value(presence):
+                duration = alt_task[TASK_DURATION]
+                machine  = alt_task[TASK_MACHINE ]
+                break
+        print(f'Job {job}: starts at {solver.Value(start)} (machine {machine}, duration {duration})')
+    
+    print(f'Objective Function: {solver.Value(makespan)}')
