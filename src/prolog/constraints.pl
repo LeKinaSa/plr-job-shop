@@ -82,7 +82,7 @@ separate_machines(MachineId, Tasks, Chosen, Start, [Machine | Machines]) :-
 
 % get_tasks_by_machine(+MachineId, +Tasks, +Chosen, +Start, -TasksOnTheMachine)
 get_tasks_by_machine(_, [], [], [], []).
-get_tasks_by_machine(MachineId, [(JobId-_)-AltTasks | Tasks], [ChosenAltTask | ChosenAltTasks], [Start | Starts], [JobId-Start | TasksOnTheMachine]) :-
+get_tasks_by_machine(MachineId, [JobId-_-_-AltTasks | Tasks], [ChosenAltTask | ChosenAltTasks], [Start | Starts], [JobId-Start | TasksOnTheMachine]) :-
     pair_element(ChosenAltTask, AltTasks, Machine-_),
     Machine #= MachineId,
     get_tasks_by_machine(MachineId, Tasks, ChosenAltTasks, Starts, TasksOnTheMachine).
