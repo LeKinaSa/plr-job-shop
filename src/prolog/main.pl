@@ -10,8 +10,7 @@ jobshop :-
     reset_timer,
 
     % Jobs and Horizon (Data)
-    n_machines(Machines),
-    get_jobs(Jobs)   , get_tasks(  Jobs ,   Tasks),
+    n_machines(Machines), get_jobs(Tasks),
     length(Tasks , N), get_horizon(Tasks, Horizon),
 
     % Decision Variables
@@ -23,8 +22,8 @@ jobshop :-
     only_one_chosen_alternative_task(   Tasks, Chosen),
     task_duration(                      Tasks, Chosen, Start, End),
     only_one_task_per_machine_at_a_time(Tasks, Chosen, Start, End),
-    task_precedence(                    Tasks,         Start, End),
-    eliminate_symmetries(               Tasks, Chosen, Start),
+    task_interval(                      Tasks,         Start, End),
+   % eliminate_symmetries(               Tasks, Chosen, Start),
 
     % Solve
     get_latest_finish( End, ObjFunc),
