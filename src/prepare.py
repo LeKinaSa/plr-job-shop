@@ -13,6 +13,9 @@ PRODUCTION_TIME = 'production_time'
 PRODUCTION_LINE = 'production_line'
 CAPACITY        = 'capacity'
 MODEL_TOTALS    = 'total'
+MIN_START       = 'min_start'
+MAX_END         = 'max_end'
+TASK            = 'task'
 
 ORTOOLS_DATA_FILE = 'data/fab.json'
 PROLOG_DATA_FILE  = 'data/fab.pl'
@@ -26,7 +29,7 @@ ORTOOLS_EXAMPLE_DATA_FILE = 'data/example.json'
 PROLOG_EXAMPLE_DATA_FILE  = 'data/example.pl'
 CPLEX_EXAMPLE_DATA_FILE   = 'data/example.dat'
 
-LOG = True
+LOG = False
 
 ######################### Real Data #########################
 
@@ -56,7 +59,7 @@ def get_data():
     for row in range(2, n_rows + 1):
         model      = sheet.cell(row, TIMES_MODEL_COLUMN).value
         time_taken = sheet.cell(row, TIMES_TIME_COLUMN ).value
-        models[model] = { PRODUCTION_TIME : time_taken, MODEL_TOTALS: 0}
+        models[model] = { PRODUCTION_TIME : time_taken, MODEL_TOTALS: 0, MIN_START: 0, MAX_END: 100000} # TODO: min_start + max_end
     
     # Lines
     sheet = workbook[LINES_SHEET]
@@ -108,15 +111,11 @@ def get_data():
     return (models, lines)
 
 def get_jobs(models, lines):
-    # Each Job has 3 Tasks
-    # Task 0 - before the resources arrive
-    # Task 1 - production (may have alternative tasks in different machines)
-    # Task 2 - delivery deadline
+    # Each Job has 1 Production Task which may have alternative tasks in different machines
 
     jobs = {}
     for model_id, model in models.items():
         production_time = model[PRODUCTION_TIME] * model[MODEL_TOTALS]
-        tasks = []
         alternative_tasks = []
     
         for production_line in model[PRODUCTION_LINE]:
@@ -124,10 +123,8 @@ def get_jobs(models, lines):
             t[TASK_MACHINE ] = production_line
             t[TASK_DURATION] = math.ceil(production_time / lines[production_line][CAPACITY])
             alternative_tasks.append(tuple(t))
-
-        tasks.append(alternative_tasks)
         
-        jobs[model_id] = tasks
+        jobs[model_id] = {TASK: alternative_tasks, MIN_START: model[MIN_START], MAX_END: model[MAX_END]}
     return jobs
 
 ######################### Easy Data #########################
@@ -176,7 +173,7 @@ def example_data():
 
 def save_data(jobs, n_lines, ortools_file=ORTOOLS_DATA_FILE, prolog_file=PROLOG_DATA_FILE, cplex_file=CPLEX_DATA_FILE):
     save_ortools(jobs         , ortools_file)
-    save_prolog (jobs         ,  prolog_file)
+    save_prolog (jobs, n_lines,  prolog_file)
     save_cplex  (jobs, n_lines,   cplex_file)
 
 def save_ortools(jobs, ortools_file):
@@ -184,29 +181,31 @@ def save_ortools(jobs, ortools_file):
         json.dump(jobs, file)
     return
 
-def save_prolog(jobs, prolog_file):
-    lines = get_prolog_lines(deepcopy(jobs))
+def save_prolog(jobs, n_lines, prolog_file):
+    lines = get_prolog_lines(deepcopy(jobs), n_lines)
     
     with open(prolog_file, 'w') as file:
         file.writelines(lines)
     return
 
-def get_prolog_lines(jobs):
-    # Each Job has 3 Tasks
-    # Task 0 - before the resources arrive
-    # Task 1 - production (may have alternative tasks in different machines)
-    # Task 2 - delivery deadline
-    
+def get_prolog_lines(jobs, n_lines):
+    # Each Job has 1 Production Task which may have alternative tasks in different machines
+
     lines = [
-        '% job(+JobId, +Tasks) | Tasks = [Task] | Task = [AltTask] | AltTask = MachineId-Duration\n'
+        '% n_machines(+NMachines)\n',
+        f'n_machines({n_lines}).\n\n',
+        '% job(+JobId, -MinStart, +MaxEnd, +Task) | Task = [AltTask] | AltTask = MachineId-Duration\n'
     ]
 
-    for model_id, tasks in jobs.items():
-        for task in tasks:
-            for alt_task_id, alt_task in enumerate(task):
-                task[alt_task_id] = f'{alt_task[TASK_MACHINE]}-{alt_task[TASK_DURATION]}'
+    for model_id, info in jobs.items():
+        task      = info[TASK]
+        min_start = info[MIN_START]
+        max_end   = info[MAX_END]
+
+        for alt_task_id, alt_task in enumerate(task):
+            task[alt_task_id] = f'{alt_task[TASK_MACHINE]}-{alt_task[TASK_DURATION]}'
         
-        line = f'job({model_id}, {tasks}).\n'
+        line = f'job({model_id}-{min_start}-{max_end}-{task}).\n'
         line = line.replace('\'', '')
         lines.append(line)
     return lines
@@ -222,12 +221,16 @@ def get_cplex_lines(jobs, n_lines):
     ops   = [ 'Ops = {   // OperationID, JobID, JobPosition\n'      ]
     modes = [ 'Modes = { // OperationID, Machine, ProcessingTime\n' ]
     
-    for job_id, tasks in jobs.items():
-        for task_id, task in enumerate(tasks):
-            operation_id = job_id * 10 + task_id
-            ops.append(f'  <{operation_id}, {job_id}, {task_id}>,\n')
-            for alt_task in task:
-                modes.append(f'  <{operation_id}, {alt_task[TASK_MACHINE]}, {alt_task[TASK_DURATION]}>,\n')
+    for job_id, info in jobs.items():
+        task      = info[TASK]
+        min_start = info[MIN_START]
+        max_end   = info[MAX_END]
+        
+        # TODO: include min_start & max_end
+        
+        ops.append(f'  <{job_id}, {job_id}, 0>,\n')
+        for alt_task in task:
+            modes.append(f'  <{job_id}, {alt_task[TASK_MACHINE]}, {alt_task[TASK_DURATION]}>,\n')
     
     ops  .append('};\n\n')
     modes.append('};\n')
@@ -291,8 +294,8 @@ if __name__ == '__main__':
         model_statistics(jobs, models, 818)
     
     # Save Easy Data
-    save_easy_data()
-    example_data()
+    #save_easy_data()
+    #example_data()
     
     # Test
     print('Done.')
