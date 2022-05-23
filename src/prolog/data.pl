@@ -3,14 +3,12 @@
 
 :- ensure_loaded('../../data/fab.pl').
 
-n_machines(3). % TODO: make this function
-
 %%%%%%%%%%%%%%%%%%%%        JOBS        %%%%%%%%%%%%%%%%%%%%
 
 % get_jobs(-Jobs)
-% Jobs = [job_id - tasks] ; tasks = [task] ; task = [alternative_task] ; alternative_task = machine_id - duration
+% Jobs = [ (JobId - MinStart - MaxEnd) - Task] ; Task = [AlternativeTask] ; AlternativeTask = MachineId - Duration
 get_jobs(Jobs) :-
-    findall(Job-Tasks, job(Job, Tasks), Jobs).
+    findall(Job, job(Job), Jobs).
 
 %%%%%%%%%%%%%%%%%%%%      HORIZON       %%%%%%%%%%%%%%%%%%%%
 
@@ -29,25 +27,9 @@ get_horizon([_-AltTasks | Tasks], Temp, Horizon) :-
 %%%%%%%%%%%%%%%%%%%%       TASKS        %%%%%%%%%%%%%%%%%%%%
 
 % get_tasks(+Jobs, -Tasks)
-get_tasks(Jobs, Tasks) :-
-    get_tasks(Jobs, [], Tasks).
-
-% get_tasks(+Jobs, +Temp, -Tasks)
-get_tasks([], Tasks, Tasks).
-get_tasks([Job | Jobs], Temp, Tasks) :-
-    get_new_tasks(Job, NewTasks),
-    append(Temp, NewTasks, NewTemp),
-    get_tasks(Jobs, NewTemp, Tasks).
-
-% get_new_tasks(+JobIdAndJobTasks, -NewTasks)
-get_new_tasks(JobId-Tasks, NewTasks) :-
-    get_new_tasks(JobId, 0, Tasks, NewTasks).
-
-% get_new_tasks(+JobId, +TaskId, -JobTasks, -NewTasks)
-get_new_tasks(_, _, [], []).
-get_new_tasks(JobId, TaskId, [Task | Tasks], [(JobId-TaskId)-Task | NewTasks]) :-
-    NextTaskId is TaskId + 1,
-    get_new_tasks(JobId, NextTaskId, Tasks, NewTasks).
+get_tasks([], [], [], []).
+get_tasks([(_-MinStart-MaxEnd)-Task | Jobs], [MinStart | Mins], [MaxEnd | Maxs], [Task | Tasks]) :-
+    get_tasks(Jobs, Mins, Maxs, Tasks).
 
 %%%%%%%%%%%%%%%%%%%% OBJECTIVE FUNCTION %%%%%%%%%%%%%%%%%%%%
 

@@ -1,106 +1,74 @@
 
-import collections
-from ortools.sat.python import cp_model
+from ortools.sat.python.cp_model import CpModel, CpSolver
 
 from data import get_data
 from output import IntermediateSolutionPrinter as SolutionPrinter, print_statistics, print_results
-from constants import TASK_DURATION, TASK_MACHINE, DataDifficulty
+from constants import TASK, MIN_START, MAX_END, START_VAR, END_VAR, DURATION_VAR, PRESENCES_VAR
 
 def jobshop():
-    # Get Data
-    jobs = get_data(DataDifficulty.MEDIUM)
+    (jobs, horizon) = get_data()
 
-    # Compute Horizon (worst case scenario)
-    horizon = 0
-    for job in jobs.values():
-        for task in job:
-            max_task_duration = min([alt_task[TASK_DURATION] for alt_task in task])
-            horizon += max_task_duration
+    # Create Model
+    model = CpModel()
 
-    # Create the Model
-    model = cp_model.CpModel()
+    # Decision Variables
+    for job in jobs:
+        jobs[job][   START_VAR] = model.NewIntVar(0, horizon,    f'start_{job}')
+        jobs[job][     END_VAR] = model.NewIntVar(0, horizon,      f'end_{job}')
+        jobs[job][DURATION_VAR] = model.NewIntVar(0, horizon, f'duration_{job}')
 
-    # Global Storage of Variables
-    intervals_per_machines = collections.defaultdict(list)
-    starts    = {}  # indexed by (job_id, task_id)
-    presences = {}  # indexed by (job_id, task_id, alt_id)
-    job_ends  = []
+    # Task Interval
+    for job in jobs:
+        model.Add(jobs[job][START_VAR] >= jobs[job][MIN_START])
+        model.Add(jobs[job][  END_VAR] >= jobs[job][MIN_START])
+        model.Add(jobs[job][START_VAR] <= jobs[job][MAX_END  ])
+        model.Add(jobs[job][  END_VAR] <= jobs[job][MAX_END  ])
 
-    # Create Job Intervals (Decision Variables)
-    for job_id, job in jobs.items():
-        previous_end = None
+    # Only 1 Chosen Alternative Task
+    intervals_per_machines = {}
+    for job, info in jobs.items():
+        task = info[TASK]
+        jobs[job][PRESENCES_VAR] = []
+        for machine_id, alt_duration in task:
+            alt_start = model.NewIntVar(0, horizon, '')
+            alt_end   = model.NewIntVar(0, horizon, '')
+            alt_present = model.NewBoolVar('')
 
-        for task_id, task in enumerate(job):
-            min_duration = min([alt_task[TASK_DURATION] for alt_task in task])
-            max_duration = max([alt_task[TASK_DURATION] for alt_task in task])
+            model.Add(jobs[job][   START_VAR] == alt_start   ).OnlyEnforceIf(alt_present)
+            model.Add(jobs[job][     END_VAR] == alt_end     ).OnlyEnforceIf(alt_present)
+            model.Add(jobs[job][DURATION_VAR] == alt_duration).OnlyEnforceIf(alt_present)
 
-            # Create Main Task Intervals for each Task
-            start    = model.NewIntVar(0           , horizon     , f'start_j{job_id}_t{task_id}')
-            duration = model.NewIntVar(min_duration, max_duration, f'duration_j{job_id}_t{task_id}')
-            end      = model.NewIntVar(0           , horizon     , f'end_j{job_id}_t{task_id}')
-            interval = model.NewIntervalVar( start, duration, end, f'interval_j{job_id}_t{task_id}')
+            jobs[job][PRESENCES_VAR].append(alt_present)
+            
+            # Task Duration
+            alt_interval = model.NewOptionalIntervalVar(alt_start, alt_duration, alt_end, alt_present, '')
 
-            # Store the Start
-            starts[(job_id, task_id)] = start
+            # Machines Intervals for Constraint: Only 1 Task Per Machine at a Time
+            intervals_per_machines[machine_id] = intervals_per_machines.get(machine_id, [])
+            intervals_per_machines[machine_id].append(alt_interval)
 
-            # Constraints: Add Job Precedence
-            if previous_end is not None:
-                model.Add(start >= previous_end)
-            previous_end = end
+        model.AddExactlyOne(jobs[job][PRESENCES_VAR])
 
-            # Create Alternative Intervals for the Task
-            if len(task) > 1:
-                l_presences = []
-                for alt_id, alt_task in enumerate(task):
-                    l_duration = alt_task[TASK_DURATION]
-                    l_presence = model.NewBoolVar(            f'presence_j{job_id}_t{task_id}_a{alt_id}')
-                    l_start    = model.NewIntVar (0, horizon, f'start_j{job_id}_t{task_id}_a{alt_id}')
-                    l_end      = model.NewIntVar (0, horizon, f'end_j{job_id}_t{task_id}_a{alt_id}')
-                    l_interval = model.NewOptionalIntervalVar(
-                        l_start, l_duration, l_end, l_presence, f'interval_j{job_id}_t{task_id}_a{alt_id}')
-
-                    l_presences.append(l_presence)
-
-                    # Link the Main Variables with the Alternative Ones
-                    model.Add(start    == l_start   ).OnlyEnforceIf(l_presence)
-                    model.Add(duration == l_duration).OnlyEnforceIf(l_presence)
-                    model.Add(end      == l_end     ).OnlyEnforceIf(l_presence)
-
-                    # Add the Alternative Interval to the Correct Machine
-                    intervals_per_machines[alt_task[TASK_MACHINE]].append(l_interval)
-
-                    # Store the Presence
-                    presences[(job_id, task_id, alt_id)] = l_presence
-
-                # Only Select 1 Alternative per Task
-                model.AddExactlyOne(l_presences)
-            else:
-                # Only 1 Possible Alternative
-                alt_task = task[0]
-                intervals_per_machines[alt_task[TASK_MACHINE]].append(interval)
-                presences[(job_id, task_id, 0)] = model.NewConstant(1)
-
-        # Store the End
-        job_ends.append(previous_end)
-
-    # Constraints: Two Jobs on the Same Machine can't overlap
+    # Only 1 Task Per Machine at a Time
     for intervals in intervals_per_machines.values():
-        if len(intervals) > 1:
-            model.AddNoOverlap(intervals)
+        model.AddNoOverlap(intervals)
 
     # Objective Function
+    ends = []
+    for info in jobs.values():
+        ends.append(info[END_VAR])
     makespan = model.NewIntVar(0, horizon, 'makespan')
-    model.AddMaxEquality(makespan, job_ends)
+    model.AddMaxEquality(makespan, ends)
     model.Minimize(makespan)
 
-    # Create the Solver and Solve
-    solver = cp_model.CpSolver()
+    # Create Solver and Solve
+    solver = CpSolver()
     solution_printer = SolutionPrinter()
     status = solver.Solve(model, solution_printer)
     
     # Print Results
     print_statistics(solver, status)
-    print_results(solver, status, jobs, starts, presences)
+    print_results(solver, status, jobs, makespan)
 
 if __name__ == '__main__':
     jobshop()
