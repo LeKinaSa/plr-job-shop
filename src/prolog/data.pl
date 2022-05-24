@@ -37,7 +37,7 @@ get_tasks([(_-MinStart-MaxEnd)-Task | Jobs], [MinStart | Mins], [MaxEnd | Maxs],
 get_latest_finish(Ends, ObjFunc) :-
     maximum(ObjFunc, Ends).
 
-%%%%%%%%%%%%%%%%%%%% OBJECTIVE FUNCTION %%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% OVERTIME %%%%%%%%%%%%%%%%%%%%
 
 % get_overtime_used(+Starts, +Ends, +Durations, -OvertimeUsed)
 get_overtime_used(Starts, Ends, Durations, OvertimeUsed) :-
@@ -67,11 +67,11 @@ get_overtime_overlap(Start, End, LastIntervalStart-LastOvertimeEnd, Temp, Overti
     get_overtime_overlap(Start, End, OvertimeInterval, NextTemp, OvertimeOverlap).
 
 % get_next_overtime_interval(+LastOvertimeInterval, -OvertimeInterval)
-get_next_overtime_interval(0-0, 1920-2034).
+get_next_overtime_interval(0-0, 1920-2034). % TODO: hardcoded variables
 get_next_overtime_interval(LastOvertimeStart-LastOvertimeEnd, OvertimeStart-OvertimeEnd) :-
     LastOvertimeStart #\= 0,
-    OvertimeStart #= LastOvertimeStart + 2034,
-    OvertimeEnd   #= LastOvertimeEnd   + 2034.
+    OvertimeStart #= LastOvertimeStart + 2034, % TODO: hardcoded variables
+    OvertimeEnd   #= LastOvertimeEnd   + 2034. % TODO: hardcoded variables
 
 % get_overlap(+OvertimeInterval, +TaskInterval, -Overlap)
 get_overlap(OS-_, _-TE, 0) :-
