@@ -95,8 +95,10 @@ get_overlap(OS-OE, TS-TE, Overlap) :-
     OS #< TE, % Avoid no Overlap
     TE #< OE, % Avoid Overtime ⊂ Task
     Overlap #= TE - OS. % Tasks starts outside overtime, and ends inside: TS < OS < TE < OE
-get_overlap(OS-OE, TS-TE, Overlap) :- % May cause symmetries
+get_overlap(OS-OE, TS-TE, 0) :- % Avoid Symmetries
     OS #< TS, % Avoid Overtime ⊂ Task
     TS #< OE, % Avoid no Overlap
-    OE #< TE, % Avoid Task ⊂ Overtime
-    Overlap #= OE - TS. % Task starts during overtime, and ends outside: OS < TS < OE < TE
+    OE #< TE. % Avoid Task ⊂ Overtime
+    % Task starts during overtime, and ends outside: OS < TS < OE < TE
+    % Causes symmetries
+    % in conjunction with the previous get_overlap, allows for "infinite" solutions when dividing overtime
