@@ -25,7 +25,7 @@ def get_horizon(jobs):
     horizon = 0
     for job in jobs.values():
         task = job[TASK]
-        max_task_duration = min([alt_task[TASK_DURATION] for alt_task in task])
+        max_task_duration = max([alt_task[TASK_DURATION] for alt_task in task])
         horizon += max_task_duration
     return horizon
 

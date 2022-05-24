@@ -1,7 +1,7 @@
 
 from ortools.sat.python.cp_model import CpSolverSolutionCallback, OPTIMAL, FEASIBLE
 
-from constants import TASK_MACHINE, TASK_DURATION, TASK, START_VAR, PRESENCES_VAR
+from constants import TASK_MACHINE, TASK_DURATION, TASK, START_VAR, END_VAR, PRESENCES_VAR
 
 class IntermediateSolutionPrinter(CpSolverSolutionCallback):
     """Print intermediate solutions"""
@@ -41,6 +41,7 @@ def print_optimal_solution(solver, jobs, obj_func):
     for job, info in jobs.items():
         task      = info[         TASK]
         start     = info[    START_VAR]
+        end       = info[      END_VAR]
         presences = info[PRESENCES_VAR]
 
         (machine, duration) = (-1, -1)
@@ -49,6 +50,7 @@ def print_optimal_solution(solver, jobs, obj_func):
                 duration = alt_task[TASK_DURATION]
                 machine  = alt_task[TASK_MACHINE ]
                 break
-        print(f'Job {job}: starts at {solver.Value(start)} (machine {machine}, duration {duration})')
+        real_duration = solver.Value(end) - solver.Value(start)
+        print(f'Job {job}: starts at {solver.Value(start)} (machine {machine}, duration {duration}, non-used overtime {real_duration - duration})')
     
     print(f'Objective Function: {solver.Value(obj_func)}')
