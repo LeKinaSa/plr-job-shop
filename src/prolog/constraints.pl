@@ -15,16 +15,16 @@ only_one_chosen_alternative_task([_-Task | Tasks], [ChosenAltTask | Chosen]) :-
 
 %%%%%%%%%%%%%%%%%%%%   Task Duration    %%%%%%%%%%%%%%%%%%%%
 
-% task_duration(+Tasks, +ChosenAltTasks, +Starts, +Ends)
-task_duration([], [], [], []).
-task_duration([_-Task | Tasks], [ChosenAltTask | Chosen], [Start | Starts], [End | Ends]) :-
-    verify_task_duration(Task, ChosenAltTask, Start, End),
-    task_duration(Tasks, Chosen, Starts, Ends).
+% task_duration(+Tasks, +ChosenAltTasks, +Starts, +Ends, -Durations)
+task_duration([], [], [], [], []).
+task_duration([_-Task | Tasks], [ChosenAltTask | Chosen], [Start | Starts], [End | Ends], [Duration | Durations]) :-
+    verify_task_duration(Task, ChosenAltTask, Start, End, Duration),
+    task_duration(Tasks, Chosen, Starts, Ends, Durations).
 
-% verify_task_duration(+Task, +ChosenAltTask, +Start, +End)
-verify_task_duration(Task, Chosen, Start, End) :-
+% verify_task_duration(+Task, +ChosenAltTask, +Start, +End, -Duration)
+verify_task_duration(Task, Chosen, Start, End, Duration) :-
     pair_element(Chosen, Task, _-Duration),
-    End #= Start + Duration.
+    End #>= Start + Duration.
 
 %%%%%%%%%%%%%%%%%%%% 1 Task per Machine %%%%%%%%%%%%%%%%%%%%
 
