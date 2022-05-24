@@ -27,16 +27,16 @@ def print_statistics(solver, status):
     print(f'  Optimal objective value: {solver.ObjectiveValue()}')
     print('--------------------------------')
     
-def print_results(solver, status, jobs, makespan):
+def print_results(solver, status, jobs, obj_func):
     # Print the results
     if status == OPTIMAL or status == FEASIBLE:
         print('Found a Solution')
         # Print Solution
-        print_optimal_solution(solver, jobs, makespan)
+        print_optimal_solution(solver, jobs, obj_func)
     else:
         print('No Solution Found')
 
-def print_optimal_solution(solver, jobs, makespan):    
+def print_optimal_solution(solver, jobs, obj_func):    
     # Print Final Solution
     for job, info in jobs.items():
         task      = info[         TASK]
@@ -51,4 +51,4 @@ def print_optimal_solution(solver, jobs, makespan):
                 break
         print(f'Job {job}: starts at {solver.Value(start)} (machine {machine}, duration {duration})')
     
-    print(f'Objective Function: {solver.Value(makespan)}')
+    print(f'Objective Function: {solver.Value(obj_func)}')
