@@ -3,9 +3,6 @@ import openpyxl as excel
 import json, math
 from copy import deepcopy
 
-INFINITE_MACHINE = 0
-PRODUCTION_TASK = 0 # TODO: modify to 1 when introducing resource arrival date
-
 TASK_MACHINE  = 0
 TASK_DURATION = 1
 
