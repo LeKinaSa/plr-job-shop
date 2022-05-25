@@ -29,14 +29,6 @@ def get_horizon(jobs):
         horizon += max_task_duration
     return horizon
 
-def get_overtime_intervals(horizon, normal_time=1920, over_time=384):
-    intervals = [(normal_time, normal_time + over_time)]
-    offset = normal_time + over_time
-    while intervals[-1][0] + offset < horizon:
-        last_interval = intervals[-1]
-        intervals.append((last_interval[0] + offset, last_interval[1] + offset))
-    return intervals
-
 if __name__ == '__main__':
     # Get Data
     (jobs, _) = get_data()

@@ -1,9 +1,13 @@
 
-from ortools.sat.python.cp_model import CpModel, CpSolver
+from ortools.sat.python.cp_model import CpModel, CpSolver, OPTIMAL, FEASIBLE
 
-from data import get_data, get_overtime_intervals
+from data import get_data
 from output import IntermediateSolutionPrinter as SolutionPrinter, print_statistics, print_results
 from constants import TASK, MIN_START, MAX_END, START_VAR, END_VAR, DURATION_VAR, PRESENCES_VAR
+
+NORMAL_TIME = 1920
+OVER_TIME   = 384
+WORK_WEEK   = NORMAL_TIME + OVER_TIME
 
 def jobshop():
     (jobs, horizon) = get_data()
@@ -55,7 +59,6 @@ def jobshop():
         model.AddNoOverlap(intervals)
 
     # Objective Function
-    # overtime = get_overtime(model, horizon, jobs)
     (starts, ends) = ([], [])
     for info in jobs.values():
         ends  .append(info[  END_VAR])
@@ -72,6 +75,8 @@ def jobshop():
     model.AddMaxEquality(makespan, ends)
     model.Minimize(makespan)
 
+    overtime = get_overtime(model, horizon, jobs)
+
     # Create Solver and Solve
     solver = CpSolver()
     solution_printer = SolutionPrinter()
@@ -80,39 +85,59 @@ def jobshop():
     # Print Results
     print_statistics(solver, status)
     print_results(solver, status, jobs, makespan)
-    print(solver.Value(start_times), solver.Value(end_times))
+    if status == OPTIMAL or status == FEASIBLE:
+        print(solver.Value(start_times), solver.Value(end_times))
+        print(solver.Value(overtime))
 
 def get_overtime(model: CpModel, horizon: int, jobs: dict):
-    overtime_intervals = get_overtime_intervals(horizon)
-    used_overtimes = map(lambda x : get_used_overtime(model, horizon, jobs, x, overtime_intervals), jobs)
+    used_overtimes = []
+    for job in jobs:
+        start    = jobs[job][START_VAR]
+        end      = jobs[job][  END_VAR]
+        duration = jobs[job][DURATION_VAR]
+        
+        # Unused Overtime
+        unused_overtime = model.NewIntVar(0, horizon, '')
+        model.Add(unused_overtime == end - start - duration)
+        
+        # Total Overtime Calculation
+        total_overtime = model.NewIntVar(0, horizon, '')
+        start_mod = model.NewIntVar(0, WORK_WEEK, '')
+        end_mod   = model.NewIntVar(0, WORK_WEEK, '')
+        model.AddModuloEquality(start_mod, start, WORK_WEEK)
+        model.AddModuloEquality(  end_mod,   end, WORK_WEEK)
+        align_start = model.NewIntVar(0, horizon, '')
+        align_end   = model.NewIntVar(0, horizon + WORK_WEEK, '')
+        model.Add(align_start == start - start_mod)
+        model.Add(align_end   ==  end  -   end_mod + WORK_WEEK)
+        
+        # Overtime found in weeks between the start and end of the task
+        overtime_middle = model.NewIntVar(0, horizon, '')
+        minutes_weeks = model.NewIntVar(0, horizon, '')
+        n_weeks = model.NewIntVar(0, horizon // WORK_WEEK + 1, '')
+        model.Add(align_end - align_start == minutes_weeks + WORK_WEEK)
+        model.AddDivisionEquality(n_weeks, minutes_weeks, WORK_WEEK)
+        model.AddMultiplicationEquality(overtime_middle, n_weeks, OVER_TIME)
+        
+        # Overtime not used on task start
+        overtime_start  = model.NewIntVar(0, OVER_TIME, '')
+        model.AddMaxEquality(overtime_start, [start_mod - NORMAL_TIME, 0])
+        
+        # Overtime not used on task end
+        overtime_end    = model.NewIntVar(0, OVER_TIME, '')
+        model.AddMinEquality(overtime_end, [WORK_WEEK - end_mod, OVER_TIME])
+        
+        # Total Overtime
+        model.Add(total_overtime == overtime_middle - overtime_end - overtime_start)
+        
+        # Used Overtime
+        used_overtime = model.NewIntVar(0, horizon, '')
+        model.Add(used_overtime + unused_overtime == total_overtime)
+        used_overtimes.append(used_overtime)
+    
     overtime = model.NewIntVar(0, horizon, 'overtime')
     model.Add(sum(used_overtimes) == overtime)
     return overtime
-
-def get_used_overtime(model: CpModel, horizon: int, jobs: dict, job: int, overtime_intervals: list):
-    (start, end, duration) = (jobs[job][START_VAR], jobs[job][END_VAR], jobs[job][DURATION_VAR])
-    time_stopped = model.NewIntVar(0, horizon, '')
-    model.Add(time_stopped == end - start + duration)
-    
-    overlaps = get_overlaps(model, horizon, jobs, job, overtime_intervals)
-    overtime = model.NewIntVar(0, horizon, '')
-    model.Add(sum(overlaps) == overtime)
-    
-    return overtime - time_stopped
-
-def get_overlaps(model: CpModel, horizon: int, jobs: dict, job: int, overtime_intervals: list):
-    (task_start, task_end) = (jobs[job][START_VAR], jobs[job][END_VAR])
-    overlaps = []
-    for overtime_start, overtime_end in overtime_intervals:
-        start = model.NewIntVar(0, horizon, '')
-        end   = model.NewIntVar(0, horizon, '')
-        model.AddMaxEquality(start, [task_start, overtime_start])
-        model.AddMinEquality(end  , [task_end  , overtime_end  ])
-        
-        overlapped = model.NewIntVar(0, horizon, '')
-        model.AddMaxEquality(overlapped, [end - start, 0])
-        overlaps.append(overlapped)
-    return overlaps
 
 if __name__ == '__main__':
     jobshop()
