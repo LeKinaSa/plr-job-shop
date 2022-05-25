@@ -20,7 +20,7 @@ get_horizon(Tasks, Horizon) :-
 get_horizon([], Horizon, Horizon).
 get_horizon([_-AltTasks | Tasks], Temp, Horizon) :-
     divide_list(AltTasks, _, AltTaskDurations),
-    minimum(Partial, AltTaskDurations),
+    maximum(Partial, AltTaskDurations),
     NewTemp #= Temp + Partial,
     get_horizon(Tasks, NewTemp, Horizon).
 
@@ -40,10 +40,10 @@ get_latest_finish(Ends, ObjFunc) :-
 %%%%%%%%%%%%%%%%%%%% OVERTIME %%%%%%%%%%%%%%%%%%%%
 
 % get_normal_time(-NormalTime)
-get_normal_time(1920).
+get_normal_time(1920). % TODO: maybe not hardcoded?
 
 % get_over_time(+Overtime)
-get_over_time(384).
+get_over_time(384). % TODO: maybe not hardcoded?
 
 % get_week_time(+WeekTime)
 get_week_time(WeekTime) :-
