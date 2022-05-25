@@ -73,9 +73,10 @@ def jobshop():
     
     makespan = model.NewIntVar(0, horizon, 'makespan')
     model.AddMaxEquality(makespan, ends)
-    model.Minimize(makespan)
+    # model.Minimize(makespan)
 
     overtime = get_overtime(model, horizon, jobs)
+    model.Minimize(overtime)
 
     # Create Solver and Solve
     solver = CpSolver()
@@ -85,9 +86,7 @@ def jobshop():
     # Print Results
     print_statistics(solver, status)
     print_results(solver, status, jobs, makespan)
-    if status == OPTIMAL or status == FEASIBLE:
-        print(solver.Value(start_times), solver.Value(end_times))
-        print(solver.Value(overtime))
+    print(overtime, solver.Value(overtime))
 
 def get_overtime(model: CpModel, horizon: int, jobs: dict):
     used_overtimes = []
@@ -115,7 +114,7 @@ def get_overtime(model: CpModel, horizon: int, jobs: dict):
         overtime_middle = model.NewIntVar(0, horizon, '')
         minutes_weeks = model.NewIntVar(0, horizon, '')
         n_weeks = model.NewIntVar(0, horizon // WORK_WEEK + 1, '')
-        model.Add(align_end - align_start == minutes_weeks + WORK_WEEK)
+        model.Add(align_end - align_start == minutes_weeks)
         model.AddDivisionEquality(n_weeks, minutes_weeks, WORK_WEEK)
         model.AddMultiplicationEquality(overtime_middle, n_weeks, OVER_TIME)
         
