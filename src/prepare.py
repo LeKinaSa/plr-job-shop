@@ -26,7 +26,7 @@ ORTOOLS_EXAMPLE_DATA_FILE = 'data/example.json'
 PROLOG_EXAMPLE_DATA_FILE  = 'data/example.pl'
 CPLEX_EXAMPLE_DATA_FILE   = 'data/example.dat'
 
-LOG = False
+LOG = True
 
 ######################### Real Data #########################
 
@@ -240,13 +240,12 @@ def get_cplex_lines(jobs, n_lines):
 ######################### Real Data Statistics #########################
 
 def get_duration(job_tasks):
-        job_tasks = job_tasks[0]
-        return list(map(lambda x: x[TASK_DURATION], job_tasks))
+    job_tasks = job_tasks[TASK]
+    return list(map(lambda x: x[TASK_DURATION], job_tasks))
 
 def statistics(jobs, models):
     def n_production_lines(job_tasks):
-        tasks = job_tasks[1]
-        production_tasks = tasks[PRODUCTION_TASK]
+        production_tasks = job_tasks[1][TASK]
         return len(production_tasks), models[job_tasks[0]][MODEL_TOTALS]
 
     job_tasks     = list(map(n_production_lines, jobs.items()))
@@ -289,10 +288,6 @@ if __name__ == '__main__':
         statistics(jobs, models)
         model_statistics(jobs, models, 128)
         model_statistics(jobs, models, 818)
-    
-    # Save Easy Data
-    #save_easy_data()
-    #example_data()
     
     # Test
     print('Done.')
