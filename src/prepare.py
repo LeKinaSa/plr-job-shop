@@ -288,6 +288,7 @@ if __name__ == '__main__':
         statistics(jobs, models)
         model_statistics(jobs, models, 128)
         model_statistics(jobs, models, 818)
+        print(list(jobs.items())[0])
     
     # Test
     print('Done.')

@@ -1,4 +1,3 @@
-from enum import Enum, auto
 
 INFINITE_MACHINE = 0
 
@@ -13,9 +12,3 @@ START_VAR     = 'start'
 END_VAR       = 'end'
 DURATION_VAR  = 'duration'
 PRESENCES_VAR = 'intervals'
-
-class DataDifficulty(Enum):
-    EXAMPLE = auto()
-    EASY    = auto()
-    MEDIUM  = auto()
-    HARD    = auto()
