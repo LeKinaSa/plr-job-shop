@@ -29,31 +29,46 @@ random_seed = 0
 
 def generator():
     global random_seed
-    normal_time_hours = 40
-    for n_jobs in [5, 10, 20, 40, 60, 80, 100, 125, 150]:
-        for percent_alt_jobs in range(0, 110, 10):
-            jobs_with_alts = floor(n_jobs * percent_alt_jobs / 100)
-            
-            for n_machines in range(1, 11, 1):
-                for percent_alt_machines in range(0, 110, 10):
-                    n_alts_per_job = floor(n_machines * percent_alt_machines / 100)
-            
-                    for medium_size_task in [10, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1250, 1500]:
-                        horizon = n_jobs * medium_size_task
-                        
-                        for production_range in range(2, 22, 2):
-                            for time_usage in range(50, 110, 10):
-                                normal_time = normal_time_hours * 60 * time_usage / 100
-                                for over_time_hours in range(0, 11, 1):
-                                    over_time = over_time_hours * 60 * time_usage / 100
-                                    
-                                    jobs = generate_jobs(n_jobs, jobs_with_alts, n_alts_per_job, n_machines, medium_size_task, production_range, horizon)
-                                    while not solvable(deepcopy(jobs), horizon):
-                                        print(f'Repeated: {n_jobs}-{percent_alt_jobs}-{n_machines}-{percent_alt_machines}-{medium_size_task}-{production_range}-{time_usage}-{over_time_hours}')
-                                        random_seed += 1
-                                        jobs = generate_jobs(n_jobs, jobs_with_alts, n_alts_per_job, n_machines, medium_size_task, production_range, horizon)
-                                    
-                                    save(jobs, n_machines, normal_time, over_time, horizon, f'{n_jobs}-{percent_alt_jobs}-{n_machines}-{percent_alt_machines}-{medium_size_task}-{production_range}-{time_usage}-{over_time_hours}')
+    
+    for n_jobs in [5, 10, 20, 40, 60, 80, 100, 125, 150]: # default: 75
+        generate(n_jobs=n_jobs)
+    for percent_alt_jobs in range(0, 101, 10): # default: 50
+        generate(percent_alt_jobs=percent_alt_jobs)
+    
+    for n_machines in range(1, 11, 1): # default: 4
+        generate(n_machines=n_machines)
+    for percent_alt_machines in range(0, 101, 10): # default: 75
+        generate(percent_alt_machines=percent_alt_machines)
+    
+    for medium_size_task in [10, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1250, 1500, 2000, 2500]: # default: 50
+        generate(medium_size_task=medium_size_task)
+    for production_range in [1, 2, 3, 4, 5] + list(range(6, 21, 2)): # default: 2
+        generate(production_range=production_range)
+    
+    for time_usage in range(50, 110, 10): # default: 80
+        generate(time_usage=time_usage)
+    for over_time_hours in range(0, 11, 1): # default: 8
+        generate(over_time_hours=over_time_hours)
+
+def generate(n_jobs:int=75, percent_alt_jobs:int=50,
+            n_machines:int=4, percent_alt_machines:int=75,
+            medium_size_task:int=50, production_range:int=2,
+            time_usage:int=80, over_time_hours:int=8, normal_time_hours:int=40):
+    global random_seed
+
+    jobs_with_alts =        floor(n_jobs     * percent_alt_jobs     / 100)
+    n_alts_per_job = max(1, floor(n_machines * percent_alt_machines / 100))
+    horizon        = n_jobs * medium_size_task
+    normal_time    = normal_time_hours * 60 * time_usage / 100
+    over_time      = over_time_hours   * 60 * time_usage / 100
+    
+    jobs = generate_jobs(n_jobs, jobs_with_alts, n_alts_per_job, n_machines, medium_size_task, production_range, horizon)
+    while not solvable(deepcopy(jobs), horizon):
+        print(f'Repeated: {n_jobs}-{percent_alt_jobs}-{n_machines}-{percent_alt_machines}-{medium_size_task}-{production_range}-{time_usage}-{over_time_hours}')
+        random_seed += 1
+        jobs = generate_jobs(n_jobs, jobs_with_alts, n_alts_per_job, n_machines, medium_size_task, production_range, horizon)
+    
+    save(jobs, n_machines, normal_time, over_time, horizon, f'{n_jobs}-{percent_alt_jobs}-{n_machines}-{percent_alt_machines}-{medium_size_task}-{production_range}-{time_usage}-{over_time_hours}')
 
 def generate_jobs(n_jobs, jobs_with_alts, n_alts_per_job, n_machines, medium_size_task, production_range, horizon):
     global random_seed
@@ -82,7 +97,11 @@ def generate_jobs(n_jobs, jobs_with_alts, n_alts_per_job, n_machines, medium_siz
             (t[TASK_MACHINE], t[TASK_DURATION]) = (alt_machine, alt_duration)
             jobs[job][TASK].append(tuple(t))
         
-        max_duration = max(map(lambda x : x[TASK_DURATION], jobs[job][TASK]))
+        l = list(map(lambda x : x[TASK_DURATION], jobs[job][TASK]))
+        if len(l) == 0:
+            print(jobs[job], n_alts_per_job, jobs_with_alts)
+            return
+        max_duration = max(l)
         production_interval = max_duration * production_range
         
         if (horizon <= production_interval):
