@@ -124,54 +124,12 @@ def get_jobs(models, lines):
         jobs[model_id] = {TASK: alternative_tasks, MIN_START: model[MIN_START], MAX_END: model[MAX_END]}
     return jobs
 
-######################### Easy Data #########################
-
-def get_easy_jobs():
-    jobs = {  # task = (machine_id, processing_time)
-        0: [  # Job 0
-            [(1, 1), (2, 5), (3, 3)],  # task 0 with 3 alternatives
-            [(1, 4), (2, 6), (3, 2)],  # task 1 with 3 alternatives
-            [(1, 3), (2, 1), (3, 2)],  # task 2 with 3 alternatives
-        ],
-        1: [  # Job 1
-            [(1, 3), (2, 4), (3, 2)],
-            [(1, 5), (2, 4), (3, 1)],
-            [(1, 1), (2, 4), (3, 2)],
-        ],
-        2: [  # Job 2
-            [(1, 1), (2, 4), (3, 2)],
-            [(1, 3), (2, 4), (3, 2)],
-            [(1, 1), (2, 5), (3, 3)],
-        ]
-    }
-    return jobs
-
-def save_easy_data():
-    jobs = get_easy_jobs()
-    save_data(jobs, len(jobs[0]), ORTOOLS_EASY_DATA_FILE, PROLOG_EASY_DATA_FILE, CPLEX_EASY_DATA_FILE)
-    return
-
-def example_data():
-    jobs = {
-        1: [
-            [(1, 1), (2, 2)],
-            [(1, 2), (2, 1)]
-        ],
-        2: [
-            [(1, 3), (2, 2)],
-            [(1, 1), (2, 1)]
-        ]
-    }
-    
-    save_data(jobs, len(jobs[1]), ORTOOLS_EXAMPLE_DATA_FILE, PROLOG_EXAMPLE_DATA_FILE, CPLEX_EXAMPLE_DATA_FILE)
-    return
-
 ######################### Data to Files #########################
 
 def save_data(jobs, n_lines, ortools_file=ORTOOLS_DATA_FILE, prolog_file=PROLOG_DATA_FILE, cplex_file=CPLEX_DATA_FILE):
     save_ortools(jobs         , ortools_file)
     save_prolog (jobs, n_lines,  prolog_file)
-    save_cplex  (jobs, n_lines,   cplex_file)
+    # save_cplex  (jobs, n_lines,   cplex_file)
 
 def save_ortools(jobs, ortools_file):
     with open(ortools_file, 'w') as file:

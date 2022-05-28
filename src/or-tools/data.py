@@ -3,10 +3,8 @@ import json
 
 from constants import TASK_DURATION, TASK
 
-DATA = 'data/fab.json'
-
-def get_data():
-    with open(DATA, 'r') as file:
+def get_data(filename='data/fab.json'):
+    with open(filename, 'r') as file:
         jobs = json.load(file)
     return jobs, get_horizon(jobs)
 
