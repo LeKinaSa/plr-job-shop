@@ -1,5 +1,5 @@
 
-from ortools.sat.python.cp_model import CpModel, CpSolver, OPTIMAL, FEASIBLE
+from ortools.sat.python.cp_model import CpModel, CpSolver, IntVar
 
 from data import get_data
 from output import IntermediateSolutionPrinter as SolutionPrinter, print_statistics, print_results
@@ -9,8 +9,8 @@ NORMAL_TIME = 1920
 OVER_TIME   = 384
 WORK_WEEK   = NORMAL_TIME + OVER_TIME
 
-def jobshop():
-    (jobs, horizon) = get_data()
+def jobshop(filename: str = 'data/fab.json') -> CpSolver:
+    (jobs, horizon) = get_data(filename)
 
     # Create Model
     model = CpModel()
@@ -87,8 +87,9 @@ def jobshop():
     print_statistics(solver, status)
     print_results(solver, status, jobs, makespan)
     print(overtime, solver.Value(overtime))
+    return solver
 
-def get_overtime(model: CpModel, horizon: int, jobs: dict):
+def get_overtime(model: CpModel, horizon: int, jobs: dict) -> IntVar:
     used_overtimes = []
     for job in jobs:
         start    = jobs[job][START_VAR]

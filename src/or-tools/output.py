@@ -1,5 +1,5 @@
 
-from ortools.sat.python.cp_model import CpSolverSolutionCallback, OPTIMAL, FEASIBLE
+from ortools.sat.python.cp_model import CpSolverSolutionCallback, CpSolver, IntVar, OPTIMAL, FEASIBLE
 
 from constants import TASK_MACHINE, TASK_DURATION, TASK, START_VAR, END_VAR, PRESENCES_VAR
 
@@ -14,7 +14,7 @@ class IntermediateSolutionPrinter(CpSolverSolutionCallback):
         print(f'Solution {self.__solution_count}, time = {self.WallTime()} s, objective = {self.ObjectiveValue()}')
         self.__solution_count += 1
 
-def print_statistics(solver, status):
+def print_statistics(solver: CpSolver, status: int) -> None:
     # Solver Statistics
     print('--------------------------------')
     print('           Statistics           ')
@@ -27,7 +27,7 @@ def print_statistics(solver, status):
     print(f'  Optimal objective value: {solver.ObjectiveValue()}')
     print('--------------------------------')
     
-def print_results(solver, status, jobs, obj_func):
+def print_results(solver: CpSolver, status: int, jobs: dict, obj_func: IntVar) -> None:
     # Print the results
     if status == OPTIMAL or status == FEASIBLE:
         print('Found a Solution')
@@ -36,7 +36,7 @@ def print_results(solver, status, jobs, obj_func):
     else:
         print('No Solution Found')
 
-def print_optimal_solution(solver, jobs, obj_func):    
+def print_optimal_solution(solver: CpSolver, jobs: dict, obj_func: IntVar) -> None:
     # Print Final Solution
     for job, info in jobs.items():
         task      = info[         TASK]

@@ -1,5 +1,8 @@
 
 from ortools.sat.python.cp_model import CpModel, CpSolver, OPTIMAL, FEASIBLE
+
+from os.path import exists
+from os import makedirs
 from math import floor
 from copy import deepcopy
 from random import Random
@@ -15,15 +18,6 @@ START_VAR     = 'start'
 END_VAR       = 'end'
 DURATION_VAR  = 'duration'
 PRESENCES_VAR = 'intervals'
-
-# Data Variables
-#  - Number of Jobs (default: 74)
-#  - Number of Alternatives per Job (default: 2)
-#  - (Percentage of) Jobs with Alternatives (default: 6)
-#  - (Ratio between Number of Alternatives per Jobs and) Number of Machines (default: 2)
-#  - Ratio between Normal Time and Over Time (default: 1920-384)
-#  - Horizon (default: [58547, 62587] ~845*n_jobs)
-#  - Job Durations (default: [12, 8036])
 
 random_seed = 0
 
@@ -50,10 +44,10 @@ def generator():
     for over_time_hours in range(0, 11, 1): # default: 8
         generate(over_time_hours=over_time_hours)
 
-def generate(n_jobs:int=75, percent_alt_jobs:int=50,
-            n_machines:int=4, percent_alt_machines:int=75,
-            medium_size_task:int=50, production_range:int=2,
-            time_usage:int=80, over_time_hours:int=8, normal_time_hours:int=40):
+def generate(n_jobs: int = 75, percent_alt_jobs: int = 50,
+            n_machines: int = 4, percent_alt_machines: int = 75,
+            medium_size_task: int = 50, production_range: int = 2,
+            time_usage: int = 80, over_time_hours: int = 8, normal_time_hours: int = 40) -> None:
     global random_seed
 
     jobs_with_alts =        floor(n_jobs     * percent_alt_jobs     / 100)
@@ -70,7 +64,8 @@ def generate(n_jobs:int=75, percent_alt_jobs:int=50,
     
     save(jobs, n_machines, normal_time, over_time, horizon, f'{n_jobs}-{percent_alt_jobs}-{n_machines}-{percent_alt_machines}-{medium_size_task}-{production_range}-{time_usage}-{over_time_hours}')
 
-def generate_jobs(n_jobs, jobs_with_alts, n_alts_per_job, n_machines, medium_size_task, production_range, horizon):
+def generate_jobs(n_jobs: int, jobs_with_alts: int, n_alts_per_job: int, n_machines: int,
+                  medium_size_task: int, production_range: int, horizon: int) -> dict:
     global random_seed
     random = Random()
     random.seed(random_seed)
@@ -116,7 +111,7 @@ def generate_jobs(n_jobs, jobs_with_alts, n_alts_per_job, n_machines, medium_siz
     
     return jobs
 
-def solvable(jobs, horizon):
+def solvable(jobs: dict, horizon: int) -> bool:
     # Create Model
     model = CpModel()
 
@@ -174,9 +169,11 @@ def solvable(jobs, horizon):
     status = solver.Solve(model)
     return status == OPTIMAL or status == FEASIBLE
 
-def save(jobs, machines, normal_time, over_time, horizon, file):
-    file = 'data/' + file
+def save(jobs: dict, machines: int, normal_time: int, over_time: int, horizon: int, file: str):
+    file = 'data/simulated/' + file
     save_data(jobs, machines, normal_time, over_time, horizon, file + '.py', file + '.pl', file + '.dat')
 
 if __name__ == '__main__':
+    if not exists('data/simulated'):
+        makedirs('data/simulated')
     generator()

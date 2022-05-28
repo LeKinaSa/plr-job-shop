@@ -3,12 +3,12 @@ import json
 
 from constants import TASK_DURATION, TASK
 
-def get_data(filename='data/fab.json'):
+def get_data(filename: str = 'data/fab.json') -> tuple:
     with open(filename, 'r') as file:
-        jobs = json.load(file)
+        jobs = json.load(file)['jobs']
     return jobs, get_horizon(jobs)
 
-def get_horizon(jobs):
+def get_horizon(jobs: dict) -> int:
     # Compute Horizon (worst case scenario)
     horizon = 0
     for job in jobs.values():
@@ -17,7 +17,7 @@ def get_horizon(jobs):
         horizon += max_task_duration
     return horizon
 
-def get_strict_horizon(jobs):
+def get_strict_horizon(jobs: dict) -> int:
     # Compute Horizon (worst case scenario)
     horizon = 0
     for job in jobs.values():

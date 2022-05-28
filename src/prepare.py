@@ -22,7 +22,7 @@ LOG = True
 
 ######################### Real Data #########################
 
-def get_data():
+def get_data() -> tuple:
     # Data Constants
     FILE = 'data/raw/oi_22_23.xlsx'
     TIMES_SHEET = 'times'
@@ -99,7 +99,7 @@ def get_data():
     workbook.close()
     return (models, lines)
 
-def get_jobs(models, lines):
+def get_jobs(models: dict, lines: dict) -> dict:
     # Each Job has 1 Production Task which may have alternative tasks in different machines
 
     jobs = {}
@@ -118,25 +118,27 @@ def get_jobs(models, lines):
 
 ######################### Data to Files #########################
 
-def save_data(jobs, n_lines, horizon=68000, normal_time=1920, over_time=384, ortools_file=ORTOOLS_DATA_FILE, prolog_file=PROLOG_DATA_FILE, cplex_file=CPLEX_DATA_FILE):
+def save_data(jobs: dict, n_lines: int, horizon: int = 68000, normal_time: int = 1920, over_time: int = 384,
+              ortools_file: str = ORTOOLS_DATA_FILE, prolog_file: str = PROLOG_DATA_FILE,
+              cplex_file: str = CPLEX_DATA_FILE) -> None:
     save_ortools(jobs         , horizon, normal_time, over_time, ortools_file)
     save_prolog (jobs, n_lines, horizon, normal_time, over_time,  prolog_file)
     # save_cplex  (jobs, n_lines,   cplex_file)
 
-def save_ortools(jobs, horizon, normal_time, over_time, ortools_file):
+def save_ortools(jobs: dict, horizon: int, normal_time: int, over_time: int, ortools_file: str) -> None:
     file_content = {'jobs': jobs, 'horizon': horizon, 'normal_time': normal_time, 'over_time': over_time}
     with open(ortools_file, 'w') as file:
         json.dump(file_content, file)
     return
 
-def save_prolog(jobs, n_lines, horizon, normal_time, over_time, prolog_file):
+def save_prolog(jobs: dict, n_lines: int, horizon: int, normal_time: int, over_time: int, prolog_file: str) -> None:
     lines = get_prolog_lines(deepcopy(jobs), n_lines, horizon, normal_time, over_time)
     
     with open(prolog_file, 'w') as file:
         file.writelines(lines)
     return
 
-def get_prolog_lines(jobs, n_lines, horizon, normal_time, over_time):
+def get_prolog_lines(jobs: dict, n_lines: int, horizon: int, normal_time: int, over_time: int) -> list:
     # Each Job has 1 Production Task which may have alternative tasks in different machines
 
     lines = [
@@ -164,14 +166,14 @@ def get_prolog_lines(jobs, n_lines, horizon, normal_time, over_time):
         lines.append(line)
     return lines
 
-def save_cplex(jobs, n_lines, cplex_file):
+def save_cplex(jobs: dict, n_lines: int, cplex_file: str) -> None:
     lines = get_cplex_lines(jobs, n_lines)
     
     with open(cplex_file, 'w') as file:
         file.writelines(lines)
     return
 
-def get_cplex_lines(jobs, n_lines):
+def get_cplex_lines(jobs: dict, n_lines: int) -> list:
     ops   = [ 'Ops = {   // OperationID, JobID, JobPosition\n'      ]
     modes = [ 'Modes = { // OperationID, Machine, ProcessingTime\n' ]
     
@@ -196,11 +198,11 @@ def get_cplex_lines(jobs, n_lines):
 
 ######################### Real Data Statistics #########################
 
-def get_duration(job_tasks):
+def get_duration(job_tasks: list) -> int:
     job_tasks = job_tasks[TASK]
     return list(map(lambda x: x[TASK_DURATION], job_tasks))
 
-def statistics(jobs, models):
+def statistics(jobs: dict, models: dict) -> None:
     def n_production_lines(job_tasks):
         production_tasks = job_tasks[1][TASK]
         return len(production_tasks), models[job_tasks[0]][MODEL_TOTALS]
@@ -223,7 +225,7 @@ def statistics(jobs, models):
     
     print(f'Product Duration : [{min(durations)}, {max(durations)}]')
 
-def model_statistics(jobs, models, id):
+def model_statistics(jobs: dict, models: dict, id: int) -> None:
     print()
     print(f'Model {id}')
     print(f'  Production Time per Unit: {models[id][PRODUCTION_TIME]}')
