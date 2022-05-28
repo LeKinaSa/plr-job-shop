@@ -54,3 +54,7 @@ def print_optimal_solution(solver: CpSolver, jobs: dict, obj_func: IntVar) -> No
         print(f'Job {job}: starts at {solver.Value(start)} (machine {machine}, duration {duration}, non-used overtime {real_duration - duration})')
     
     print(f'Objective Function: {solver.Value(obj_func)}')
+
+def print_value(solver: CpSolver, status: int, value: IntVar) -> None:
+    if status == OPTIMAL or status == FEASIBLE:
+        print(f'{value}: {solver.Value(value)}')

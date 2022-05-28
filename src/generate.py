@@ -53,8 +53,8 @@ def generate(n_jobs: int = 75, percent_alt_jobs: int = 50,
     jobs_with_alts =        floor(n_jobs     * percent_alt_jobs     / 100)
     n_alts_per_job = max(1, floor(n_machines * percent_alt_machines / 100))
     horizon        = n_jobs * medium_size_task
-    normal_time    = normal_time_hours * 60 * time_usage / 100
-    over_time      = over_time_hours   * 60 * time_usage / 100
+    normal_time    = (int) (normal_time_hours * 60 * time_usage / 100)
+    over_time      = (int) (over_time_hours   * 60 * time_usage / 100)
     
     jobs = generate_jobs(n_jobs, jobs_with_alts, n_alts_per_job, n_machines, medium_size_task, production_range, horizon)
     while not solvable(deepcopy(jobs), horizon):
@@ -171,9 +171,10 @@ def solvable(jobs: dict, horizon: int) -> bool:
 
 def save(jobs: dict, machines: int, normal_time: int, over_time: int, horizon: int, file: str):
     file = 'data/simulated/' + file
-    save_data(jobs, machines, normal_time, over_time, horizon, file + '.py', file + '.pl', file + '.dat')
+    save_data(jobs, machines, horizon, normal_time, over_time, file + '.json', file + '.pl', file + '.dat')
 
 if __name__ == '__main__':
     if not exists('data/simulated'):
         makedirs('data/simulated')
-    generator()
+    # generator()
+    generate(5, 50, 4, 75, 50, 2, 80, 8)
