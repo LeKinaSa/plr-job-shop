@@ -118,29 +118,36 @@ def get_jobs(models, lines):
 
 ######################### Data to Files #########################
 
-def save_data(jobs, n_lines, ortools_file=ORTOOLS_DATA_FILE, prolog_file=PROLOG_DATA_FILE, cplex_file=CPLEX_DATA_FILE):
-    save_ortools(jobs         , ortools_file)
-    save_prolog (jobs, n_lines,  prolog_file)
+def save_data(jobs, n_lines, horizon=68000, normal_time=1920, over_time=384, ortools_file=ORTOOLS_DATA_FILE, prolog_file=PROLOG_DATA_FILE, cplex_file=CPLEX_DATA_FILE):
+    save_ortools(jobs         , horizon, normal_time, over_time, ortools_file)
+    save_prolog (jobs, n_lines, horizon, normal_time, over_time,  prolog_file)
     # save_cplex  (jobs, n_lines,   cplex_file)
 
-def save_ortools(jobs, ortools_file):
+def save_ortools(jobs, horizon, normal_time, over_time, ortools_file):
+    file_content = {'jobs': jobs, 'horizon': horizon, 'normal_time': normal_time, 'over_time': over_time}
     with open(ortools_file, 'w') as file:
-        json.dump(jobs, file)
+        json.dump(file_content, file)
     return
 
-def save_prolog(jobs, n_lines, prolog_file):
-    lines = get_prolog_lines(deepcopy(jobs), n_lines)
+def save_prolog(jobs, n_lines, horizon, normal_time, over_time, prolog_file):
+    lines = get_prolog_lines(deepcopy(jobs), n_lines, horizon, normal_time, over_time)
     
     with open(prolog_file, 'w') as file:
         file.writelines(lines)
     return
 
-def get_prolog_lines(jobs, n_lines):
+def get_prolog_lines(jobs, n_lines, horizon, normal_time, over_time):
     # Each Job has 1 Production Task which may have alternative tasks in different machines
 
     lines = [
-        '% n_machines(+NMachines)\n',
-        f'n_machines({n_lines}).\n\n',
+        '% n_machines(-NMachines)\n',
+         f'n_machines({n_lines}).\n\n',
+        '% horizon(-Horizon)\n',
+         f'horizon({horizon}).\n\n',
+        '% normal_time(-NormalTime).\n',
+         f'normal_time({normal_time}).\n\n',
+        '% over_time(-OverTime).\n',
+         f'over_time({over_time}).\n\n',
         '% job(+JobId, -MinStart, +MaxEnd, +Task) | Task = [AltTask] | AltTask = MachineId-Duration\n'
     ]
 

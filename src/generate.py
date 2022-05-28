@@ -175,8 +175,8 @@ def solvable(jobs, horizon):
     return status == OPTIMAL or status == FEASIBLE
 
 def save(jobs, machines, normal_time, over_time, horizon, file):
-    # TODO: use normal_time, over_time and horizon
-    save_data(jobs, machines, 'data/' + file + '.py', 'data/' + file + '.pl', 'data/' + file + '.dat')
+    file = 'data/' + file
+    save_data(jobs, machines, normal_time, over_time, horizon, file + '.py', file + '.pl', file + '.dat')
 
 if __name__ == '__main__':
     generator()
