@@ -18,14 +18,6 @@ ORTOOLS_DATA_FILE = 'data/fab.json'
 PROLOG_DATA_FILE  = 'data/fab.pl'
 CPLEX_DATA_FILE   = 'data/fab.dat'
 
-ORTOOLS_EASY_DATA_FILE = 'data/fab-easy.json'
-PROLOG_EASY_DATA_FILE  = 'data/fab-easy.pl'
-CPLEX_EASY_DATA_FILE   = 'data/fab-easy.dat'
-
-ORTOOLS_EXAMPLE_DATA_FILE = 'data/example.json'
-PROLOG_EXAMPLE_DATA_FILE  = 'data/example.pl'
-CPLEX_EXAMPLE_DATA_FILE   = 'data/example.dat'
-
 LOG = True
 
 ######################### Real Data #########################
