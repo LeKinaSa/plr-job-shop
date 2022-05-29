@@ -82,6 +82,6 @@ get_total_overtime(Start, End, TotalOvertime) :-
 
     % Unused End Overtime
     EndDiff   #= WeekTime - EndMod,
-    minimum(EndOvertime, [EndDiff, 0]),
+    minimum(EndOvertime, [EndDiff, OverTime]),
 
     TotalOvertime #= MiddleOvertime - StartOvertime - EndOvertime.
