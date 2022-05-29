@@ -5,8 +5,8 @@ from constants import TASK_DURATION, TASK
 
 def get_data(filename: str = 'data/fab.json') -> tuple:
     with open(filename, 'r') as file:
-        jobs = json.load(file)['jobs']
-    return jobs, get_horizon(jobs)
+        data = json.load(file)
+    return data['jobs'], data['horizon']
 
 def get_horizon(jobs: dict) -> int:
     # Compute Horizon (worst case scenario)
@@ -30,4 +30,4 @@ if __name__ == '__main__':
     # Get Data
     (jobs, horizon) = get_data()
     print(list(jobs.items())[0])
-    print(f'Horizon: [{get_strict_horizon(jobs)}, {horizon}]')
+    print(f'Horizon: [{get_strict_horizon(jobs)}, {get_horizon(jobs)}] → {horizon}')

@@ -64,9 +64,10 @@ def jobshop(filename: str = 'data/fab.json', log: bool = True) -> tuple:
         ends  .append(info[  END_VAR])
         starts.append(info[START_VAR])
     # Total Time
-    start_times = model.NewIntVar(0, horizon*(len(jobs)+1), '')
-    end_times   = model.NewIntVar(0, horizon*(len(jobs)+1), '')
-    total_time  = model.NewIntVar(0, horizon, 'total_time')
+    max_total_time = horizon * (len(jobs) + 1)
+    start_times = model.NewIntVar(0, max_total_time, '')
+    end_times   = model.NewIntVar(0, max_total_time, '')
+    total_time  = model.NewIntVar(0, max_total_time, 'total_time')
     model.Add(sum(ends) == end_times)
     model.Add(sum(starts) == start_times)
     model.Add(start_times + total_time == end_times)
@@ -75,7 +76,7 @@ def jobshop(filename: str = 'data/fab.json', log: bool = True) -> tuple:
     model.AddMaxEquality(makespan, ends)
     # model.Minimize(makespan)
 
-    overtime = get_overtime(model, horizon, jobs)
+    overtime = get_overtime(model, jobs, horizon, max_total_time)
     model.Minimize(overtime)
 
     # Create Solver and Solve
@@ -88,9 +89,12 @@ def jobshop(filename: str = 'data/fab.json', log: bool = True) -> tuple:
         print_statistics(solver, status)
         print_results(solver, status, jobs, makespan)
         print_value(solver, status, overtime)
+    else:
+        print(solver.StatusName(status))
     return (solver, status)
 
-def get_overtime(model: CpModel, horizon: int, jobs: dict) -> IntVar:
+def get_overtime(model: CpModel, jobs: dict, horizon: int, max_total_time: dict) -> IntVar:
+    max_total_time += 2 * WORK_WEEK
     used_overtimes = []
     for job in jobs:
         start    = jobs[job][START_VAR]
@@ -98,11 +102,11 @@ def get_overtime(model: CpModel, horizon: int, jobs: dict) -> IntVar:
         duration = jobs[job][DURATION_VAR]
         
         # Unused Overtime
-        unused_overtime = model.NewIntVar(0, horizon, '')
+        unused_overtime = model.NewIntVar(0, max_total_time, '')
         model.Add(unused_overtime == end - start - duration)
         
         # Total Overtime Calculation
-        total_overtime = model.NewIntVar(0, horizon, '')
+        total_overtime = model.NewIntVar(0, max_total_time, '')
         start_mod = model.NewIntVar(0, WORK_WEEK, '')
         end_mod   = model.NewIntVar(0, WORK_WEEK, '')
         model.AddModuloEquality(start_mod, start, WORK_WEEK)
@@ -113,9 +117,9 @@ def get_overtime(model: CpModel, horizon: int, jobs: dict) -> IntVar:
         model.Add(align_end   ==  end  -   end_mod + WORK_WEEK)
         
         # Overtime found in weeks between the start and end of the task
-        overtime_middle = model.NewIntVar(0, horizon, '')
-        minutes_weeks = model.NewIntVar(0, horizon, '')
-        n_weeks = model.NewIntVar(0, horizon // WORK_WEEK + 1, '')
+        overtime_middle = model.NewIntVar(0, max_total_time, '')
+        minutes_weeks = model.NewIntVar(0, max_total_time, '')
+        n_weeks = model.NewIntVar(0, max_total_time // WORK_WEEK + 1, '')
         model.Add(align_end - align_start == minutes_weeks)
         model.AddDivisionEquality(n_weeks, minutes_weeks, WORK_WEEK)
         model.AddMultiplicationEquality(overtime_middle, n_weeks, OVER_TIME)
@@ -132,11 +136,11 @@ def get_overtime(model: CpModel, horizon: int, jobs: dict) -> IntVar:
         model.Add(total_overtime == overtime_middle - overtime_end - overtime_start)
         
         # Used Overtime
-        used_overtime = model.NewIntVar(0, horizon, '')
+        used_overtime = model.NewIntVar(0, max_total_time, '')
         model.Add(used_overtime + unused_overtime == total_overtime)
         used_overtimes.append(used_overtime)
     
-    overtime = model.NewIntVar(0, horizon, 'overtime')
+    overtime = model.NewIntVar(0, max_total_time, 'overtime')
     model.Add(sum(used_overtimes) == overtime)
     return overtime
 

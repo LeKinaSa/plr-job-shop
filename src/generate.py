@@ -176,5 +176,5 @@ def save(jobs: dict, machines: int, normal_time: int, over_time: int, horizon: i
 if __name__ == '__main__':
     if not exists('data/simulated'):
         makedirs('data/simulated')
-    # generator()
-    generate(5, 50, 4, 75, 50, 2, 80, 8)
+    generator()
+    # generate(5, 50, 4, 75, 50, 2, 80, 8)

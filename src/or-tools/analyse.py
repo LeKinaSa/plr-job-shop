@@ -8,9 +8,7 @@ from main import jobshop
 
 files = ['conflits', 'branches', 'wall_time', 'status', 'obj_value']
 
-def analyser():
-    start_files()
-    
+def analyser():    
     for n_jobs in [5, 10, 20, 40, 60, 80, 100, 125, 150]: # default: 75
         analyse(n_jobs=n_jobs)
     enter_files()
@@ -72,8 +70,9 @@ def save_files(solver: CpSolver) -> None:
 if __name__ == '__main__':
     if not exists('data/statistics'):
         makedirs ('data/statistics')
+    start_files()
     if exists('data/simulated'):
-        # analyser()
-        analyse(5, 50, 4, 75, 50, 2, 80, 8)
+        analyser()
+        # analyse(5, 50, 4, 75, 50, 2, 80, 8)
     else:
         print('No files to analyse!')
