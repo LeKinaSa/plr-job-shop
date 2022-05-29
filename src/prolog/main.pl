@@ -11,7 +11,7 @@ jobshop :-
 
     % Jobs and Horizon (Data)
     n_machines(Machines), get_jobs(Tasks),
-    length(Tasks , N), get_horizon(Tasks, Horizon),
+    length(Tasks , N), horizon(Horizon),
 
     % Decision Variables
     length(Chosen, N), domain(Chosen, 0, Machines),

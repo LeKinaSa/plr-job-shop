@@ -1,7 +1,7 @@
 
 :- use_module(library(clpfd)).
 
-:- ensure_loaded('../../data/fab.pl').
+% :- ensure_loaded('../../data/fab.pl').
 
 %%%%%%%%%%%%%%%%%%%%        JOBS        %%%%%%%%%%%%%%%%%%%%
 
@@ -39,17 +39,11 @@ get_latest_finish(Ends, ObjFunc) :-
 
 %%%%%%%%%%%%%%%%%%%% OVERTIME %%%%%%%%%%%%%%%%%%%%
 
-% get_normal_time(-NormalTime)
-get_normal_time(1920). % TODO: maybe not hardcoded?
-
-% get_over_time(+Overtime)
-get_over_time(384). % TODO: maybe not hardcoded?
-
-% get_week_time(+WeekTime)
-get_week_time(WeekTime) :-
-    get_normal_time(NormalTime),
-    get_over_time(Overtime),
-    WeekTime is NormalTime + Overtime.
+% week_time(+NormalTime, +OverTime, +WeekTime)
+week_time(NormalTime, OverTime, WeekTime) :-
+    normal_time(NormalTime),
+    over_time(OverTime),
+    WeekTime is NormalTime + OverTime.
 
 % get_overtime_used(+Start, +End, +Duration, -Overtime)
 get_overtime_used(Start, End, Duration, Overtime) :-
@@ -69,9 +63,7 @@ get_task_used_overtime(Start, End, Duration, TaskOvertimeUsed) :-
     TaskOvertimeUsed #= TotalOvertime - UnusedOvertime.
 
 get_total_overtime(Start, End, TotalOvertime) :-
-    get_week_time(WeekTime),
-    get_over_time(OverTime),
-    get_normal_time(NormalTime),
+    week_time(NormalTime, OverTime, WeekTime),
     
     StartMod   #= Start mod WeekTime,
     EndMod     #=  End  mod WeekTime,
