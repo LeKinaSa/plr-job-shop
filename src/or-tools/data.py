@@ -6,7 +6,7 @@ from constants import TASK_DURATION, TASK
 def get_data(filename: str = 'data/fab.json') -> tuple:
     with open(filename, 'r') as file:
         data = json.load(file)
-    return data['jobs'], data['horizon']
+    return data
 
 def get_horizon(jobs: dict) -> int:
     # Compute Horizon (worst case scenario)

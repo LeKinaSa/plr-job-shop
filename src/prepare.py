@@ -14,6 +14,11 @@ MIN_START       = 'min_start'
 MAX_END         = 'max_end'
 TASK            = 'task'
 
+JOBS        = 'jobs'
+HORIZON     = 'horizon'
+NORMAL_TIME = 'normal_time'
+OVER_TIME   = 'over_time'
+
 ORTOOLS_DATA_FILE = 'data/fab.json'
 PROLOG_DATA_FILE  = 'data/fab.pl'
 CPLEX_DATA_FILE   = 'data/fab.dat'
@@ -126,7 +131,7 @@ def save_data(jobs: dict, n_lines: int, horizon: int = 68000, normal_time: int =
     # save_cplex  (jobs, n_lines,   cplex_file)
 
 def save_ortools(jobs: dict, horizon: int, normal_time: int, over_time: int, ortools_file: str) -> None:
-    file_content = {'jobs': jobs, 'horizon': horizon, 'normal_time': normal_time, 'over_time': over_time}
+    file_content = {JOBS: jobs, HORIZON: horizon, NORMAL_TIME: normal_time, OVER_TIME: over_time}
     with open(ortools_file, 'w') as file:
         json.dump(file_content, file)
     return

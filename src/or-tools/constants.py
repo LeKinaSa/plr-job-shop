@@ -10,3 +10,8 @@ START_VAR     = 'start'
 END_VAR       = 'end'
 DURATION_VAR  = 'duration'
 PRESENCES_VAR = 'intervals'
+
+JOBS        = 'jobs'
+HORIZON     = 'horizon'
+NORMAL_TIME = 'normal_time'
+OVER_TIME   = 'over_time'

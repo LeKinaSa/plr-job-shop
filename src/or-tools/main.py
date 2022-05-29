@@ -3,14 +3,12 @@ from ortools.sat.python.cp_model import CpModel, CpSolver, IntVar
 
 from data import get_data
 from output import IntermediateSolutionPrinter as SolutionPrinter, print_statistics, print_results, print_value
-from constants import TASK, MIN_START, MAX_END, START_VAR, END_VAR, DURATION_VAR, PRESENCES_VAR
-
-NORMAL_TIME = 1920
-OVER_TIME   = 384
-WORK_WEEK   = NORMAL_TIME + OVER_TIME
+from constants import TASK, MIN_START, MAX_END, START_VAR, END_VAR, DURATION_VAR, PRESENCES_VAR, JOBS, HORIZON, NORMAL_TIME, OVER_TIME
 
 def jobshop(filename: str = 'data/fab.json', log: bool = True) -> tuple:
-    (jobs, horizon) = get_data(filename)
+    data = get_data(filename)
+    (jobs, horizon, normal_time, over_time) = (data[JOBS], data[HORIZON], data[NORMAL_TIME], data[OVER_TIME])
+    work_week = normal_time + over_time
 
     # Create Model
     model = CpModel()
@@ -76,7 +74,7 @@ def jobshop(filename: str = 'data/fab.json', log: bool = True) -> tuple:
     model.AddMaxEquality(makespan, ends)
     # model.Minimize(makespan)
 
-    overtime = get_overtime(model, jobs, horizon, max_total_time)
+    overtime = get_overtime(model, jobs, horizon, max_total_time, normal_time, over_time, work_week)
     model.Minimize(overtime)
 
     # Create Solver and Solve
@@ -93,8 +91,9 @@ def jobshop(filename: str = 'data/fab.json', log: bool = True) -> tuple:
         print(solver.StatusName(status))
     return (solver, status)
 
-def get_overtime(model: CpModel, jobs: dict, horizon: int, max_total_time: dict) -> IntVar:
-    max_total_time += 2 * WORK_WEEK
+def get_overtime(model: CpModel, jobs: dict, horizon: int, max_total_time: dict,
+                 normal_time: int, over_time: int, work_week: int) -> IntVar:
+    max_total_time += 2 * work_week
     used_overtimes = []
     for job in jobs:
         start    = jobs[job][START_VAR]
@@ -107,30 +106,30 @@ def get_overtime(model: CpModel, jobs: dict, horizon: int, max_total_time: dict)
         
         # Total Overtime Calculation
         total_overtime = model.NewIntVar(0, max_total_time, '')
-        start_mod = model.NewIntVar(0, WORK_WEEK, '')
-        end_mod   = model.NewIntVar(0, WORK_WEEK, '')
-        model.AddModuloEquality(start_mod, start, WORK_WEEK)
-        model.AddModuloEquality(  end_mod,   end, WORK_WEEK)
+        start_mod = model.NewIntVar(0, work_week, '')
+        end_mod   = model.NewIntVar(0, work_week, '')
+        model.AddModuloEquality(start_mod, start, work_week)
+        model.AddModuloEquality(  end_mod,   end, work_week)
         align_start = model.NewIntVar(0, horizon, '')
-        align_end   = model.NewIntVar(0, horizon + WORK_WEEK, '')
+        align_end   = model.NewIntVar(0, horizon + work_week, '')
         model.Add(align_start == start - start_mod)
-        model.Add(align_end   ==  end  -   end_mod + WORK_WEEK)
+        model.Add(align_end   ==  end  -   end_mod + work_week)
         
         # Overtime found in weeks between the start and end of the task
         overtime_middle = model.NewIntVar(0, max_total_time, '')
         minutes_weeks = model.NewIntVar(0, max_total_time, '')
-        n_weeks = model.NewIntVar(0, max_total_time // WORK_WEEK + 1, '')
+        n_weeks = model.NewIntVar(0, max_total_time // work_week + 1, '')
         model.Add(align_end - align_start == minutes_weeks)
-        model.AddDivisionEquality(n_weeks, minutes_weeks, WORK_WEEK)
-        model.AddMultiplicationEquality(overtime_middle, n_weeks, OVER_TIME)
+        model.AddDivisionEquality(n_weeks, minutes_weeks, work_week)
+        model.AddMultiplicationEquality(overtime_middle, n_weeks, over_time)
         
         # Overtime not used on task start
-        overtime_start  = model.NewIntVar(0, OVER_TIME, '')
-        model.AddMaxEquality(overtime_start, [start_mod - NORMAL_TIME, 0])
+        overtime_start  = model.NewIntVar(0, over_time, '')
+        model.AddMaxEquality(overtime_start, [start_mod - normal_time, 0])
         
         # Overtime not used on task end
-        overtime_end    = model.NewIntVar(0, OVER_TIME, '')
-        model.AddMinEquality(overtime_end, [WORK_WEEK - end_mod, OVER_TIME])
+        overtime_end    = model.NewIntVar(0, over_time, '')
+        model.AddMinEquality(overtime_end, [work_week - end_mod, over_time])
         
         # Total Overtime
         model.Add(total_overtime == overtime_middle - overtime_end - overtime_start)
