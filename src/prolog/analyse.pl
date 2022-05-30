@@ -3,18 +3,22 @@
 
 :- ensure_loaded('main.pl').
 
+get_working_directory('C:/Users/User/Documents/GitHub/plr-project/src/prolog'). % TODO: Modify to fit the current development directory
+
 analyser :-
-    current_directory(Directory, 'C:/Users/clara/Documents/GitHub/plr-project/src/prolog'),
-    enter_files, write('N Jobs' ), nl, analyser(n_jobs              , [2, 5, 10, 20, 40, 60, 80, 100, 125, 150]),
-    enter_files, write('Alt J'  ), nl, analyser(percent_alt_jobs    , [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]),
-    enter_files, write('Machin' ), nl, analyser(n_machines          , [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
-    enter_files, write('Alt M'  ), nl, analyser(percent_alt_machines, [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]),
-    enter_files, write('SizTak' ), nl, analyser(average_size_task   , [10, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1250, 1500, 2000, 2500]),
-    enter_files, write('Range'  ), nl, analyser(production_range    , [1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20]),
-    enter_files, write('Usage'  ), nl, analyser(time_usage          , [50, 60, 70, 80, 90, 100]),
-    enter_files, write('OvTime' ), nl, analyser(over_time_hours     , [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
-    enter_files, write('Timeout'), nl, analyser(time_out            , [1, 5, 10, 15, 30, 45, 60, 120, 300]),
-    current_directory(_, Directory).
+    get_working_directory(WorkingDirectory),
+    current_directory(Directory, WorkingDirectory),
+    enter_files, analyser(n_jobs              , [2, 5, 10, 20, 40, 60, 80, 100, 125, 150]),
+    enter_files, analyser(percent_alt_jobs    , [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]),
+    enter_files, analyser(n_machines          , [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+    enter_files, analyser(percent_alt_machines, [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]),
+    enter_files, analyser(average_size_task   , [10, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1250, 1500, 2000, 2500]),
+    enter_files, analyser(production_range    , [1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20]),
+    enter_files, analyser(time_usage          , [50, 60, 70, 80, 90, 100]),
+    enter_files, analyser(over_time_hours     , [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+    enter_files, analyser(time_out            , [1, 5, 10, 15, 30, 45, 60, 120, 300]),
+    current_directory(_, Directory),
+    write('Done').
 
 analyser(_, []).
 analyser(Parameter, [Value | List]) :-
@@ -45,7 +49,7 @@ analyse(NJobs, PercentAltJobs, NMachines, PercentAltMachines, AverageSizeTask, P
     clean_memory,
     % Load File
     get_file_name(NJobs, PercentAltJobs, NMachines, PercentAltMachines, AverageSizeTask, ProductionRange, TimeUsage, OverTimeHours, FileName),
-    ensure_loaded(FileName),
+    consult(FileName),
     % Jobshop
     TimeoutInMilliseconds is Timeout * 1000,
     jobshop(TimeoutInMilliseconds, Branches, Conflicts, ObjValue, Status, WallTime),
@@ -57,6 +61,7 @@ get_file_name(NJobs, PercentAltJobs, NMachines, PercentAltMachines,
     concat(['../../data/simulated/', NJobs, '-', PercentAltJobs, '-', NMachines, '-', PercentAltMachines, '-',
             AverageSizeTask, '-', ProductionRange, '-', TimeUsage, '-', OverTimeHours, '.pl'], FileName).
 
+% clean_memory → remove all data from the loaded files from memory
 clean_memory :-
     retractall(n_machines(_)),
     retractall(horizon(_)),

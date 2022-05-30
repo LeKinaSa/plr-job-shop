@@ -75,15 +75,16 @@ def save_files(solver: CpSolver) -> None:
             file.write(f', {info}')
 
 if __name__ == '__main__':
-    if not exists(ORTOOLS_PATH):
-        makedirs (ORTOOLS_PATH)
     if not exists(PROLOG_PATH):
         makedirs(PROLOG_PATH)
         start_files(PROLOG_PATH)
-    start_files(ORTOOLS_PATH)
-    if exists('data/simulated'):
-        analyser()
-        # analyse(5, 50, 4, 75, 50, 2, 80, 8)
     else:
-        print('No files to analyse!')
-    # Total Time Used: 3226 seconds
+        if not exists(ORTOOLS_PATH):
+            makedirs (ORTOOLS_PATH)
+        start_files(ORTOOLS_PATH)
+        if exists('data/simulated'):
+            analyser()
+            # analyse(5, 50, 4, 75, 50, 2, 80, 8)
+        else:
+            print('No files to analyse!')
+        # Total Time Used: 3226 seconds
