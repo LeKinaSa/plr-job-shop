@@ -79,7 +79,7 @@ enter_files :-
 % enter(+Files)
 enter([]).
 enter([File | Files]) :-
-    write_to_file(File, [nl]),
+    write_to_file(File, ['\n']),
     enter(Files).
 
 % write_to_files(+Values) → Write Solver Statistics to Files
@@ -95,7 +95,7 @@ write_to_files([File | Files], [Value | Values]) :-
 
 % write_to_file(+File, +Values)
 write_to_file(File, Values) :-
-    open(File, write, Out),
+    open(File, append, Out),
     write_to_out(Out, Values),
     close(Out).
 
