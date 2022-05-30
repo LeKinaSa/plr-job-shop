@@ -6,6 +6,7 @@
 :- ensure_loaded('constraints.pl').
 
 % job shop problem
+j :- jobshop.
 jobshop :-
     reset_timer,
 
@@ -31,8 +32,12 @@ jobshop :-
     get_overtime_used(Start, End, Duration, Overtime),
     append(Start  , End   , VarsAux),
     append(Chosen, VarsAux, Vars   ),
-    labeling([minimize(Overtime), time_out(6000, success)], Vars),
+    labeling([minimize(Overtime), time_out(10000, Flag), assumptions(Branches)], Vars),
 
     % Print
     print(Tasks, Start, End, Chosen, Horizon, Overtime),
-    print_time('Solving Time: ').
+    print_time('Solving Time: '),
+    fd_statistics(backtracks, Conflicts),
+    write('Status ')   , write(Flag)     , nl,
+    write('Conflicts '), write(Conflicts), nl,
+    write('Branches ') , write(Branches) , nl.
