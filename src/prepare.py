@@ -148,13 +148,13 @@ def get_prolog_lines(jobs: dict, n_lines: int, horizon: int, normal_time: int, o
 
     lines = [
         '% n_machines(-NMachines)\n',
-         f'n_machines({n_lines}).\n\n',
+         f':- assertz(n_machines({n_lines})).\n\n',
         '% horizon(-Horizon)\n',
-         f'horizon({horizon}).\n\n',
+         f':- assertz(horizon({horizon})).\n\n',
         '% normal_time(-NormalTime).\n',
-         f'normal_time({normal_time}).\n\n',
+         f':- assertz(normal_time({normal_time})).\n\n',
         '% over_time(-OverTime).\n',
-         f'over_time({over_time}).\n\n',
+         f':- assertz(over_time({over_time})).\n\n',
         '% job(+JobId, -MinStart, +MaxEnd, +Task) | Task = [AltTask] | AltTask = MachineId-Duration\n'
     ]
 
@@ -166,7 +166,7 @@ def get_prolog_lines(jobs: dict, n_lines: int, horizon: int, normal_time: int, o
         for alt_task_id, alt_task in enumerate(task):
             task[alt_task_id] = f'{alt_task[TASK_MACHINE]}-{alt_task[TASK_DURATION]}'
         
-        line = f'job({model_id}-{min_start}-{max_end}-{task}).\n'
+        line = f':- assertz(job({model_id}-{min_start}-{max_end}-{task})).\n'
         line = line.replace('\'', '')
         lines.append(line)
     return lines

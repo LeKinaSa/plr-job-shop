@@ -7,6 +7,8 @@ from os import makedirs
 from main import jobshop
 
 files = ['conflicts', 'branches', 'wall_time', 'status', 'obj_value']
+ORTOOLS_PATH = 'data/statistics/ortools/'
+PROLOG_PATH  = 'data/statistics/prolog/'
 
 def analyser():
     for n_jobs in [2, 5, 10, 20, 40, 60, 80, 100, 125, 150]: # default: 75
@@ -44,7 +46,7 @@ def analyse(n_jobs: int = 75, percent_alt_jobs: int = 50,
             n_machines: int = 4, percent_alt_machines: int = 75,
             average_size_task: int = 50, production_range: int = 2,
             time_usage: int = 80, over_time_hours: int = 8,
-            time_out: int = 30):
+            time_out: int = 15):
 
     filename = f'{n_jobs}-{percent_alt_jobs}-{n_machines}-{percent_alt_machines}-{average_size_task}-{production_range}-{time_usage}-{over_time_hours}'
     (solver, status) = jobshop(f'data/simulated/{filename}.json', time_out, False)
@@ -53,29 +55,32 @@ def analyse(n_jobs: int = 75, percent_alt_jobs: int = 50,
     else:
         print(f'Problem! File {filename}')
 
-def start_files() -> None:
+def start_files(path: str) -> None:
     global files
     for filename in files:
-        with open('data/statistics/' + filename + '.txt', 'w+') as file:
+        with open(path + filename + '.txt', 'w+') as file:
             file.truncate(0)
 
 def enter_files() -> None:
     global files
     for filename in files:
-        with open('data/statistics/' + filename + '.txt', 'a') as file:
+        with open(ORTOOLS_PATH + filename + '.txt', 'a') as file:
             file.write('\n')
 
 def save_files(solver: CpSolver) -> None:
     global files
     solver_information = [solver.NumConflicts(), solver.NumBranches(), solver.WallTime(), solver.StatusName(), solver.ObjectiveValue()]
     for (filename, info) in zip(files, solver_information):
-        with open('data/statistics/' + filename + '.txt', 'a') as file:
+        with open(ORTOOLS_PATH + filename + '.txt', 'a') as file:
             file.write(f', {info}')
 
 if __name__ == '__main__':
-    if not exists('data/statistics'):
-        makedirs ('data/statistics')
-    start_files()
+    if not exists(ORTOOLS_PATH):
+        makedirs (ORTOOLS_PATH)
+    if not exists(PROLOG_PATH):
+        makedirs(PROLOG_PATH)
+        start_files(PROLOG_PATH)
+    start_files(ORTOOLS_PATH)
     if exists('data/simulated'):
         analyser()
         # analyse(5, 50, 4, 75, 50, 2, 80, 8)

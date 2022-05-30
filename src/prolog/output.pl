@@ -23,8 +23,8 @@ divide_tasks([JobId-_-_-Task | Tasks], [ChosenAltTask | Chosen], [JobId | JobIds
 reset_timer :-
     statistics(total_runtime, _).
 
-% print_time(+Msg) → Print Statistics Time with a Message
-print_time(Msg) :-
+% print_time(+Msg, -Time) → Print Statistics Time with a Message
+print_time(Msg, TimeInSeconds) :-
     statistics(total_runtime, [_, TimeInMilliseconds]),
     TimeInSeconds is ((TimeInMilliseconds // 10) * 10) / 1000,
     write(Msg), write(TimeInSeconds), write('s'), nl.

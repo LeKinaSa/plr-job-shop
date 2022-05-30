@@ -1,7 +1,13 @@
 
 :- use_module(library(clpfd)).
 
-% :- ensure_loaded('../../data/fab.pl').
+:- dynamic job/1.
+:- dynamic n_machines/1.
+:- dynamic horizon/1.
+:- dynamic normal_time/1.
+:- dynamic over_time/1.
+
+:- ensure_loaded('../../data/fab.pl').
 
 %%%%%%%%%%%%%%%%%%%%        JOBS        %%%%%%%%%%%%%%%%%%%%
 
