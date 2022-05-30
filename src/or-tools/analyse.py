@@ -8,8 +8,8 @@ from main import jobshop
 
 files = ['conflits', 'branches', 'wall_time', 'status', 'obj_value']
 
-def analyser():    
-    for n_jobs in [5, 10, 20, 40, 60, 80, 100, 125, 150]: # default: 75
+def analyser():
+    for n_jobs in [2, 5, 10, 20, 40, 60, 80, 100, 125, 150]: # default: 75
         analyse(n_jobs=n_jobs)
     enter_files()
     for percent_alt_jobs in range(0, 101, 10): # default: 50

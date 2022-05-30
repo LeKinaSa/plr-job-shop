@@ -33,6 +33,5 @@ jobshop :-
     labeling([], Vars), % minimize(ObjFunc) → slower than it should be, may benefit from more constraints
 
     % Print
-    write(Overtime), nl,
-    print(Tasks, Start, End, Chosen, Horizon, ObjFunc),
+    print(Tasks, Start, End, Chosen, Horizon, Overtime),
     print_time('Solving Time: ').

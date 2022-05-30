@@ -24,7 +24,7 @@ random_seed = 0
 def generator():
     global random_seed
     
-    for n_jobs in [5, 10, 20, 40, 60, 80, 100, 125, 150]: # default: 75
+    for n_jobs in [2, 5, 10, 20, 40, 60, 80, 100, 125, 150]: # default: 75
         generate(n_jobs=n_jobs)
     for percent_alt_jobs in range(0, 101, 10): # default: 50
         generate(percent_alt_jobs=percent_alt_jobs)
