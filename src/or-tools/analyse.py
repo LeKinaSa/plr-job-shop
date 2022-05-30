@@ -6,7 +6,7 @@ from os import makedirs
 
 from main import jobshop
 
-files = ['conflits', 'branches', 'wall_time', 'status', 'obj_value']
+files = ['conflicts', 'branches', 'wall_time', 'status', 'obj_value']
 
 def analyser():
     for n_jobs in [2, 5, 10, 20, 40, 60, 80, 100, 125, 150]: # default: 75
@@ -37,7 +37,7 @@ def analyser():
         analyse(over_time_hours=over_time_hours)
     enter_files()
 
-    for time_out in [15, 30, 45, 60, 120, 300]:
+    for time_out in [1, 5, 10, 15, 30, 45, 60, 120, 300]:
         analyse(time_out=time_out)
 
 def analyse(n_jobs: int = 75, percent_alt_jobs: int = 50,
