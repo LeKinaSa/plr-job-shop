@@ -17,20 +17,21 @@ jobshop :-
     length(Chosen, N), domain(Chosen, 0, Machines),
     length(Start , N), domain(Start , 0,  Horizon),
     length(End   , N), domain(End   , 0,  Horizon),
+    Overtime in 0..Horizon,
 
     % Constraints
     only_one_chosen_alternative_task(   Tasks, Chosen),
     task_duration(                      Tasks, Chosen, Start, End, Duration),
     only_one_task_per_machine_at_a_time(Tasks, Chosen, Start, End),
     task_interval(                      Tasks,         Start, End),
-    eliminate_symmetries(               Tasks, Chosen, Start),
+    % eliminate_symmetries(               Tasks, Chosen, Start),
 
     % Solve
-    get_latest_finish( End, ObjFunc),
+    % get_latest_finish( End, ObjFunc),
     get_overtime_used(Start, End, Duration, Overtime),
     append(Start  , End   , VarsAux),
     append(Chosen, VarsAux, Vars   ),
-    labeling([], Vars), % minimize(ObjFunc) → slower than it should be, may benefit from more constraints
+    labeling([minimize(Overtime)], Vars),
 
     % Print
     print(Tasks, Start, End, Chosen, Horizon, Overtime),
