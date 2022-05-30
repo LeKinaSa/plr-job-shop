@@ -23,8 +23,8 @@ def analyser():
         analyse(percent_alt_machines=percent_alt_machines)
     enter_files()
     
-    for medium_size_task in [10, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1250, 1500, 2000, 2500]: # default: 50
-        analyse(medium_size_task=medium_size_task)
+    for average_size_task in [10, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1250, 1500, 2000, 2500]: # default: 50
+        analyse(average_size_task=average_size_task)
     enter_files()
     for production_range in [1, 2, 3, 4, 5] + list(range(6, 21, 2)): # default: 2
         analyse(production_range=production_range)
@@ -42,11 +42,11 @@ def analyser():
 
 def analyse(n_jobs: int = 75, percent_alt_jobs: int = 50,
             n_machines: int = 4, percent_alt_machines: int = 75,
-            medium_size_task: int = 50, production_range: int = 2,
+            average_size_task: int = 50, production_range: int = 2,
             time_usage: int = 80, over_time_hours: int = 8,
             time_out: int = 30):
 
-    filename = f'{n_jobs}-{percent_alt_jobs}-{n_machines}-{percent_alt_machines}-{medium_size_task}-{production_range}-{time_usage}-{over_time_hours}'
+    filename = f'{n_jobs}-{percent_alt_jobs}-{n_machines}-{percent_alt_machines}-{average_size_task}-{production_range}-{time_usage}-{over_time_hours}'
     (solver, status) = jobshop(f'data/simulated/{filename}.json', time_out, False)
     if status == OPTIMAL or status == FEASIBLE:
         save_files(solver)
@@ -81,3 +81,4 @@ if __name__ == '__main__':
         # analyse(5, 50, 4, 75, 50, 2, 80, 8)
     else:
         print('No files to analyse!')
+    # Total Time Used: 3226 seconds
