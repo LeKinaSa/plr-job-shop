@@ -7,7 +7,8 @@
 
 % job shop problem
 j :- jobshop.
-jobshop :-
+jobshop :- jobshop(10000).
+jobshop(Timeout) :-
     reset_timer,
 
     % Jobs and Horizon (Data)
@@ -32,7 +33,7 @@ jobshop :-
     get_overtime_used(Start, End, Duration, Overtime),
     append(Start  , End   , VarsAux),
     append(Chosen, VarsAux, Vars   ),
-    labeling([minimize(Overtime), time_out(10000, Flag), assumptions(Branches)], Vars),
+    labeling([minimize(Overtime), time_out(Timeout, Flag), assumptions(Branches)], Vars),
 
     % Print
     print(Tasks, Start, End, Chosen, Horizon, Overtime),
