@@ -5,7 +5,7 @@ from data import get_data
 from output import IntermediateSolutionPrinter as SolutionPrinter, print_statistics, print_results, print_value
 from constants import TASK, MIN_START, MAX_END, START_VAR, END_VAR, DURATION_VAR, PRESENCES_VAR, JOBS, HORIZON, NORMAL_TIME, OVER_TIME
 
-def jobshop(filename: str = 'data/fab.json', log: bool = True) -> tuple:
+def jobshop(filename: str = 'data/fab.json', time_out_in_seconds: int = 10, log: bool = True) -> tuple:
     data = get_data(filename)
     (jobs, horizon, normal_time, over_time) = (data[JOBS], data[HORIZON], data[NORMAL_TIME], data[OVER_TIME])
     work_week = normal_time + over_time
@@ -79,6 +79,7 @@ def jobshop(filename: str = 'data/fab.json', log: bool = True) -> tuple:
 
     # Create Solver and Solve
     solver = CpSolver()
+    solver.parameters.max_time_in_seconds = time_out_in_seconds
     solution_printer = SolutionPrinter() if log else None
     status = solver.Solve(model, solution_printer)
     

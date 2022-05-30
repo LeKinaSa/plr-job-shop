@@ -35,14 +35,19 @@ def analyser():
     enter_files()
     for over_time_hours in range(0, 11, 1): # default: 8
         analyse(over_time_hours=over_time_hours)
+    enter_files()
+
+    for time_out in [15, 30, 45, 60, 120, 300]:
+        analyse(time_out=time_out)
 
 def analyse(n_jobs: int = 75, percent_alt_jobs: int = 50,
             n_machines: int = 4, percent_alt_machines: int = 75,
             medium_size_task: int = 50, production_range: int = 2,
-            time_usage: int = 80, over_time_hours: int = 8):
+            time_usage: int = 80, over_time_hours: int = 8,
+            time_out: int = 30):
 
     filename = f'{n_jobs}-{percent_alt_jobs}-{n_machines}-{percent_alt_machines}-{medium_size_task}-{production_range}-{time_usage}-{over_time_hours}'
-    (solver, status) = jobshop(f'data/simulated/{filename}.json', False)
+    (solver, status) = jobshop(f'data/simulated/{filename}.json', time_out, False)
     if status == OPTIMAL or status == FEASIBLE:
         save_files(solver)
     else:
