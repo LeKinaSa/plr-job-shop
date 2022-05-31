@@ -1,90 +1,174 @@
 from constants import TASK, MIN_START, MAX_END, START_VAR, END_VAR, DURATION_VAR, PRESENCES_VAR
 
-from ortools.sat.python.cp_model import CpModel, CpSolver as OR_CpModel, OR_CpSolver
-
-from docplex.cp.model import CpoModel as DOC_CpModel
-from docplex.cp.model import interval_var, binary_var, no_overlap, sum, add_constraint
+from ortools.sat.python.cp_model import CpModel as OR_CpModel, CpSolver as OR_CpSolver
+from docplex.cp.model import CpoModel as DOC_CpModel, CpoSolver as DOC_CpSolver, CpoParameters as DOC_CpoParameters
 
 DOCPLEX = "DOcplex"
 ORTOOLS = "OR-Tools"
 
-
-class Model:
-    def __init__(self, solver) -> None:
-        if solver == 1:
-            self.solver = DOCPLEX
-        elif solver == 2:
-            self.solver = ORTOOLS
+class SolverType:
+    def __init__(self, solver_type=0) -> None:
+        if solver_type == 1:
+            self.solver_type = DOCPLEX
         else:
-            raise Exception("Unknown solver")
+            self.solver_type = ORTOOLS
 
     # Create model
-    def Model(self):
-        if self.solver == DOCPLEX:
+    def CpModel(self):
+        if self.solver_type == DOCPLEX:
             self.model = DOC_CpModel()
-            return 
         else: # OR-Tools
             self.model = OR_CpModel()
-            return 
+        return self
+
+    def CpSolver(self):
+        if self.solver_type == DOCPLEX:
+            self.solver = DOC_CpSolver()
+        else:
+            self.solver = OR_CpSolver()
+        return self
 
     # Int Var
     def NewIntVar(self, min, max, id):
-        if self.solver == DOCPLEX:
-            return interval_var(min, max, id) # check arguments
+        if self.solver_type == DOCPLEX:
+            return self.model.interval_var(min, max, id) # check arguments
         else: # OR-Tools
             return self.model.NewIntVar(min, max, id)
 
-    # Add
-    # TODO
-    def Add(self):
-        if self.solver == DOCPLEX:
-            return 
-        else: # OR-Tools
-            return 
-
-    # Only Enforce If
-    # TODO
-    def OnlyEnforceIf(self, alt_present):
-        if self.solver == DOCPLEX:
-            return 
-        else: # OR-Tools
-            return self.model.OnlyEnforceIf(alt_present)
-
     # Bool Var
     def NewBoolVar(self, name = ''):
-        if self.solver == DOCPLEX:
-            return binary_var(name)
+        if self.solver_type == DOCPLEX:
+            return self.model.binary_var(name)
         else: # OR-Tools
             return self.model.NewBoolVar(name)
 
     # Optional Interval Var
     def NewOptionalIntervalVar(self, alt_start, alt_duration, alt_end, alt_present, name = ''):
-        if self.solver == DOCPLEX:
-            return interval_var(alt_start, alt_end, alt_duration, optional=True, name=name)
+        if self.solver_type == DOCPLEX:
+            return self.model.interval_var(alt_start, alt_end, alt_duration, optional=True, name=name)
         else: # OR-Tools
             return self.model.NewOptionalIntervalVar(alt_start, alt_duration, alt_end, alt_present, name)
 
-    # Add Exactly One
-    # most likely not working
-    def AddExactlyOne(self, jobs, job):
-        if self.solver == DOCPLEX:
-            return add_constraint(sum(jobs[job][PRESENCES_VAR]), "=", 1)
+    # Add
+    def Add(self, constraint):
+        if self.solver_type == DOCPLEX:
+            return self.model.add_constraint(constraint)
         else: # OR-Tools
-            return self.model.AddExactlyOne(jobs[job][PRESENCES_VAR])
+            return self.model.Add(constraint)
+
+    # Only Enforce If
+    def OnlyEnforceIf(self, alt_present):
+        if self.solver_type == DOCPLEX:
+            return self.model.if_then(alt_present, self) # TODO: check this one better
+        else: # OR-Tools
+            return self.model.OnlyEnforceIf(alt_present)
+
+    # Add Exactly One
+    def AddExactlyOne(self, l):
+        if self.solver_type == DOCPLEX:
+            return self.model.add_constraint(self.model.equal(self.model.sum(l), 1))
+        else: # OR-Tools
+            return self.model.AddExactlyOne(l)
 
     # Add No Overlap
     def AddNoOverlap(self, intervals):
-        if self.solver == DOCPLEX:
-            return no_overlap(intervals) # might not work
+        if self.solver_type == DOCPLEX:
+            return self.model.no_overlap(intervals)
         else: # OR-Tools
             return self.model.AddNoOverlap(intervals)
 
     # Add Max Equality
+    def AddMaxEquality(self, target, values):
+        if self.solver_type == DOCPLEX:
+            return self.model.max(target, values)
+        else:
+            return self.model.AddMaxEquality(target, values)
 
+    def AddMinEquality(self, target, values):
+        if self.solver_type == DOCPLEX:
+            return self.model.min(target, values)
+        else:
+            return self.model.AddMinEquality(target, values)
 
+    # Add Modulo Equality
+    def AddModuloEquality(self, target, variable, modulo):
+        if self.solver_type == DOCPLEX:
+            return self.model.add_constraint(self.model.equal(target, self.model.mod(variable, modulo)))
+        else:
+            return self.model.AddModuloEquality(target, variable, modulo)
+    
+    def AddDivisionEquality(self, target, variable, denominator):
+        if self.solver_type == DOCPLEX:
+            return self.model.add_constraint(self.model.equal(target, self.model.int_div(variable, denominator)))
+        else:
+            return self.model.AddDivisionEquality(target, variable, denominator)
+    
+    def AddMultiplicationEquality(self, target, variable, coefficient):
+        if self.solver_type == DOCPLEX:
+            return self.model.add_constraint(self.model.equal(target, self.model.times(variable, coefficient)))
+        else:
+            return self.model.AddMultiplicationEquality(target, variable, coefficient)
+    
     # Maximize
+    def Maximize(self, maximize_goal):
+        if self.solver_type == DOCPLEX:
+            return self.model.maximize(maximize_goal)
+        else:
+            return self.model.Maximize(maximize_goal)
 
     # Minimize
+    def Minimize(self, minimize_goal):
+        if self.solver_type == DOCPLEX:
+            return self.model.minimize(minimize_goal)
+        else:
+            return self.model.Minimize(minimize_goal)
 
     # Solve
+    def Solve(self, model, solution_printer=None):
+        if self.solver_type == DOCPLEX:
+            return self.solver.solve()
+        else:
+            return self.solver.Solve(model.model, solution_printer)
     
+    def NumConflicts(self):
+        if self.solver_type == DOCPLEX:
+            return -1 # TODO
+        else:
+            return self.solver.NumConflicts()
+
+    def NumBranches(self):
+        if self.solver_type == DOCPLEX:
+            return -1 # TODO
+        else:
+            return self.solver.NumBranches()
+
+    def WallTime(self):
+        if self.solver_type == DOCPLEX:
+            return self.solver.get_solve_time()
+        else:
+            return self.solver.WallTime()
+    
+    def StatusName(self, status):
+        if self.solver_type == DOCPLEX:
+            return self.solver.get_solve_status()
+        else:
+            return self.solver.StatusName(status)
+    
+    def ObjectiveValue(self):
+        if self.solver_type == DOCPLEX:
+            return self.solution.get_objective_value()
+        else:
+            return self.solver.ObjectiveValue()
+    
+    def Value(self, variable):
+        if self.solver_type == DOCPLEX:
+            return self.solver.get_var_solution(variable) # TODO: verify
+        else:
+            return self.solver.Value(variable)
+
+    def MaxTimeInSeconds(self, time_out_in_seconds):
+        if self.solver_type == DOCPLEX:
+            self.model.set_parameters(DOC_CpoParameters(TimeLimit=time_out_in_seconds))
+        else:
+            self.solver.parameters.max_time_in_seconds = time_out_in_seconds
+        return
