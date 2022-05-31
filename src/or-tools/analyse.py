@@ -49,7 +49,7 @@ def analyse(n_jobs: int = 75, percent_alt_jobs: int = 50,
             time_out: int = 15):
 
     filename = f'{n_jobs}-{percent_alt_jobs}-{n_machines}-{percent_alt_machines}-{average_size_task}-{production_range}-{time_usage}-{over_time_hours}'
-    (solver, status) = jobshop(f'data/simulated/{filename}.json', time_out, False)
+    (solver, status) = jobshop(0, f'data/simulated/{filename}.json', time_out, False)
     if status == OPTIMAL or status == FEASIBLE:
         save_files(solver)
     else:
