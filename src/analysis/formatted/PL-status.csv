@@ -1,0 +1,9 @@
+n_jobs,                 optimality, optimality, optimality, optimality, success,    success,    success,    success,    success,    success,   ,   ,   ,   ,   ,   ,
+percent_alt_jobs,       success,    success,    success,    success,    success,    success,    success,    success,    success,    success,    success,   ,   ,   ,   ,   ,
+n_machines,             time_out,   success,    success,    success,    success,    success,    success,    success,    success,    success,   ,   ,   ,   ,   ,   ,
+percent_alt_machines,   success,    success,    success,    success,    success,    success,    success,    success,    success,    success,    success,   ,   ,   ,   ,   
+average_size_task,      optimality, success,    success,    success,    success,    success,    success,    success,    success,    success,    success,    success,    success,    success,    success,    success
+production_range,       success,    success,    success,    success,    success,    success,    success,    success,    success,    success,    success,    success,    success,   ,   ,   ,
+time_usage,             success,    success,    success,    success,    success,    success,   ,   ,   ,   ,   ,   ,   ,   ,   ,   ,
+over_time_hours,        optimality, success,    success,    success,    success,    success,    success,    success,    success,    success,    success,   ,   ,   ,   ,   ,
+time_out,               success,    success,    success,    success,    success,    success,    success,    success,    success,       ,   ,   ,   ,   ,   ,   ,
