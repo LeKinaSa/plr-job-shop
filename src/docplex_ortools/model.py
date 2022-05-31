@@ -57,11 +57,12 @@ class SolverType:
             return self.model.Add(constraint)
 
     # Only Enforce If
-    def OnlyEnforceIf(self, alt_present):
+    def OnlyEnforceIf(self, constraint, alt_present):
         if self.solver_type == DOCPLEX:
-            return self.model.if_then(alt_present, self) # TODO: check this one better
+            self.model = DOC_CpModel()
+            return self.model.if_then(alt_present, constraint) # TODO check
         else: # OR-Tools
-            return self.model.OnlyEnforceIf(alt_present)
+            return self.model.Add(constraint).OnlyEnforceIf(alt_present)
 
     # Add Exactly One
     def AddExactlyOne(self, l):
