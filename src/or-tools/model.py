@@ -31,7 +31,7 @@ class SolverType:
     # Int Var
     def NewIntVar(self, min, max, id):
         if self.solver_type == DOCPLEX:
-            return self.model.interval_var(min, max, id) # check arguments
+            return self.model.integer_var(min, max, id) # check arguments
         else: # OR-Tools
             return self.model.NewIntVar(min, max, id)
 
@@ -60,7 +60,7 @@ class SolverType:
     def OnlyEnforceIf(self, constraint, alt_present):
         if self.solver_type == DOCPLEX:
             self.model = DOC_CpModel()
-            return self.model.if_then(alt_present, constraint) # TODO check
+            return self.model.if_then(alt_present == 1, constraint) # TODO check
         else: # OR-Tools
             return self.model.Add(constraint).OnlyEnforceIf(alt_present)
 
