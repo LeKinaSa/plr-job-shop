@@ -1,17 +1,20 @@
 
-from ortools.sat.python.cp_model import CpModel, CpSolver, IntVar
+from model import SolverType
+
 
 from data import get_data
 from output import IntermediateSolutionPrinter as SolutionPrinter, print_statistics, print_results, print_value
 from constants import TASK, MIN_START, MAX_END, START_VAR, END_VAR, DURATION_VAR, PRESENCES_VAR, JOBS, HORIZON, NORMAL_TIME, OVER_TIME
 
-def jobshop(filename: str = 'data/fab.json', time_out_in_seconds: int = 15, log: bool = True) -> tuple:
+def jobshop(solver_type: int = 0, filename: str = 'data/fab.json', time_out_in_seconds: int = 15, log: bool = True) -> tuple:
     data = get_data(filename)
     (jobs, horizon, normal_time, over_time) = (data[JOBS], data[HORIZON], data[NORMAL_TIME], data[OVER_TIME])
     work_week = normal_time + over_time
 
+    s = SolverType(solver_type)
+
     # Create Model
-    model = CpModel()
+    model = s.CpModel()
 
     # Decision Variables
     for job in jobs:
@@ -37,9 +40,9 @@ def jobshop(filename: str = 'data/fab.json', time_out_in_seconds: int = 15, log:
             alt_duration = model.NewIntVar(min_duration, horizon, '')
             alt_present  = model.NewBoolVar('')
 
-            model.Add(jobs[job][   START_VAR] == alt_start   ).OnlyEnforceIf(alt_present)
-            model.Add(jobs[job][     END_VAR] == alt_end     ).OnlyEnforceIf(alt_present)
-            model.Add(jobs[job][DURATION_VAR] == min_duration).OnlyEnforceIf(alt_present)
+            model.OnlyEnforceIf(jobs[job][   START_VAR] == alt_start   , alt_present)
+            model.OnlyEnforceIf(jobs[job][     END_VAR] == alt_end     , alt_present)
+            model.OnlyEnforceIf(jobs[job][DURATION_VAR] == min_duration, alt_present)
 
             jobs[job][PRESENCES_VAR].append(alt_present)
             
@@ -78,8 +81,8 @@ def jobshop(filename: str = 'data/fab.json', time_out_in_seconds: int = 15, log:
     model.Minimize(overtime)
 
     # Create Solver and Solve
-    solver = CpSolver()
-    solver.parameters.max_time_in_seconds = time_out_in_seconds
+    solver = s.CpSolver()
+    solver.MaxTimeInSeconds(time_out_in_seconds)
     solution_printer = SolutionPrinter() if log else None
     status = solver.Solve(model, solution_printer)
     
@@ -92,8 +95,8 @@ def jobshop(filename: str = 'data/fab.json', time_out_in_seconds: int = 15, log:
         print(solver.StatusName(status))
     return (solver, status)
 
-def get_overtime(model: CpModel, jobs: dict, horizon: int, max_total_time: dict,
-                 normal_time: int, over_time: int, work_week: int) -> IntVar:
+def get_overtime(model: SolverType, jobs: dict, horizon: int, max_total_time: dict,
+                 normal_time: int, over_time: int, work_week: int) -> object:
     max_total_time += 2 * work_week
     used_overtimes = []
     for job in jobs:

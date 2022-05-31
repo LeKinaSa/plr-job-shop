@@ -1,7 +1,7 @@
 from constants import TASK, MIN_START, MAX_END, START_VAR, END_VAR, DURATION_VAR, PRESENCES_VAR
 
 from ortools.sat.python.cp_model import CpModel as OR_CpModel, CpSolver as OR_CpSolver
-from docplex.cp.model import CpoModel as DOC_CpModel, CpoSolver as DOC_CpSolver, CpoParameters as DOC_CpoParameters
+from docplex.cp.model import CpoModel as DOC_CpModel, CpoSolver as DOC_CpSolver, CpoParameters as DOC_CpoParameters, CpoSolverInfos
 
 DOCPLEX = "DOcplex"
 ORTOOLS = "OR-Tools"
@@ -127,19 +127,20 @@ class SolverType:
     # Solve
     def Solve(self, model, solution_printer=None):
         if self.solver_type == DOCPLEX:
-            return self.solver.solve()
+            self.info = CpoSolverInfos()
+            return self.solver.solve(self.info)
         else:
             return self.solver.Solve(model.model, solution_printer)
     
     def NumConflicts(self):
         if self.solver_type == DOCPLEX:
-            return -1 # TODO
+            return self.info.get_number_of_fails()
         else:
             return self.solver.NumConflicts()
 
     def NumBranches(self):
         if self.solver_type == DOCPLEX:
-            return -1 # TODO
+            return self.info.get_number_of_branches()
         else:
             return self.solver.NumBranches()
 
