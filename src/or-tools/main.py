@@ -148,4 +148,5 @@ def get_overtime(model: SolverType, jobs: dict, horizon: int, max_total_time: di
     return overtime
 
 if __name__ == '__main__':
-    jobshop()
+    jobshop(1, 'data/simulated/5-50-4-75-50-2-80-8.json')
+    jobshop(0, 'data/simulated/5-50-4-75-50-2-80-8.json')

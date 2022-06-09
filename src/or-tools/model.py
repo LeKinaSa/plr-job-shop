@@ -45,14 +45,19 @@ class SolverType:
     # Optional Interval Var
     def NewOptionalIntervalVar(self, alt_start, alt_duration, alt_end, alt_present, name = ''):
         if self.solver_type == DOCPLEX:
-            return self.model.interval_var(alt_start, alt_end, alt_duration, optional=True, name=name)
+            interval = self.model.interval_var(optional=True, name=name)
+            self.model.add(self.model.equal(self.model.start_of  (interval), alt_start   ))
+            self.model.add(self.model.equal(self.model.end_of    (interval), alt_end     ))
+            self.model.add(self.model.equal(self.model.length_of (interval), alt_duration))
+            self.model.add(interval.is_present() == alt_present)
+            return interval
         else: # OR-Tools
             return self.model.NewOptionalIntervalVar(alt_start, alt_duration, alt_end, alt_present, name)
 
     # Add
     def Add(self, constraint):
         if self.solver_type == DOCPLEX:
-            return self.model.add_constraint(constraint)
+            return self.model.add(constraint)
         else: # OR-Tools
             return self.model.Add(constraint)
 
@@ -94,19 +99,19 @@ class SolverType:
     # Add Modulo Equality
     def AddModuloEquality(self, target, variable, modulo):
         if self.solver_type == DOCPLEX:
-            return self.model.add_constraint(self.model.equal(target, self.model.mod(variable, modulo)))
+            return self.model.add(self.model.equal(target, self.model.mod(variable, modulo)))
         else:
             return self.model.AddModuloEquality(target, variable, modulo)
     
     def AddDivisionEquality(self, target, variable, denominator):
         if self.solver_type == DOCPLEX:
-            return self.model.add_constraint(self.model.equal(target, self.model.int_div(variable, denominator)))
+            return self.model.add(self.model.equal(target, self.model.int_div(variable, denominator)))
         else:
             return self.model.AddDivisionEquality(target, variable, denominator)
     
     def AddMultiplicationEquality(self, target, variable, coefficient):
         if self.solver_type == DOCPLEX:
-            return self.model.add_constraint(self.model.equal(target, self.model.times(variable, coefficient)))
+            return self.model.add(self.model.equal(target, self.model.times(variable, coefficient)))
         else:
             return self.model.AddMultiplicationEquality(target, variable, coefficient)
     
