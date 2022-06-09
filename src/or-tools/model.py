@@ -23,7 +23,7 @@ class SolverType:
 
     def CpSolver(self):
         if self.solver_type == DOCPLEX:
-            self.solver = DOC_CpSolver()
+            self.solver = DOC_CpSolver(self.model)
         else:
             self.solver = OR_CpSolver()
         return self
@@ -86,13 +86,13 @@ class SolverType:
     # Add Max Equality
     def AddMaxEquality(self, target, values):
         if self.solver_type == DOCPLEX:
-            return self.model.max(target, values)
+            return self.model.add(target == self.model.max_of(values))
         else:
             return self.model.AddMaxEquality(target, values)
 
     def AddMinEquality(self, target, values):
         if self.solver_type == DOCPLEX:
-            return self.model.min(target, values)
+            return self.model.add(target == self.model.min_of(values))
         else:
             return self.model.AddMinEquality(target, values)
 
