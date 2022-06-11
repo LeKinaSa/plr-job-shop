@@ -27,11 +27,11 @@ class SolverType:
         return self
 
     # Int Var
-    def NewIntVar(self, min, max, id):
+    def NewIntVar(self, min, max, name):
         if self.solver_type == DOCPLEX:
-            return self.model.integer_var(min, max, id)
+            return self.model.integer_var(min, max, name)
         else: # OR-Tools
-            return self.model.NewIntVar(min, max, id)
+            return self.model.NewIntVar(min, max, name)
 
     # Bool Var
     def NewBoolVar(self, name = ''):
@@ -44,10 +44,11 @@ class SolverType:
     def NewOptionalIntervalVar(self, alt_start, alt_duration, alt_end, alt_present, name = ''):
         if self.solver_type == DOCPLEX:
             interval = self.model.interval_var(optional=True, name=name)
-            self.model.add(self.model.equal(self.model.start_of  (interval), alt_start   ))
-            self.model.add(self.model.equal(self.model.end_of    (interval), alt_end     ))
-            self.model.add(self.model.equal(self.model.length_of (interval), alt_duration))
-            self.model.add(interval.is_present() == alt_present)
+            self.model.add(self.model.if_then(alt_present == 1, self.model.equal(self.model.start_of (interval), alt_start   )))
+            self.model.add(self.model.if_then(alt_present == 1, self.model.equal(self.model.end_of   (interval), alt_end     )))
+            self.model.add(self.model.if_then(alt_present == 1, self.model.equal(self.model.length_of(interval), alt_duration)))
+            self.model.add(self.model.if_then(interval.is_present(), alt_present == 1))
+            self.model.add(self.model.if_then(interval.is_absent (), alt_present == 0))
             return interval
         else: # OR-Tools
             return self.model.NewOptionalIntervalVar(alt_start, alt_duration, alt_end, alt_present, name)
@@ -69,7 +70,7 @@ class SolverType:
     # Add Exactly One
     def AddExactlyOne(self, l):
         if self.solver_type == DOCPLEX:
-            return self.model.add(self.model.sum_of(l) == 1)
+            return self.model.add(sum(l) == 1)
         else: # OR-Tools
             return self.model.AddExactlyOne(l)
 
@@ -131,7 +132,7 @@ class SolverType:
         if self.solver_type == DOCPLEX:
             self.result = self.solver.solve()
             self.info = self.result.get_solver_infos()
-            return self.result
+            return self.result.get_solve_status()
         else:
             return self.solver.Solve(model.model, solution_printer)
     
@@ -167,7 +168,7 @@ class SolverType:
     
     def Value(self, variable):
         if self.solver_type == DOCPLEX:
-            return self.result.get_var_solution(variable)
+            return self.result.get_value(variable)
         else:
             return self.solver.Value(variable)
 
