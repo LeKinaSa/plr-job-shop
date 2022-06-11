@@ -1,11 +1,12 @@
 
-from ortools.sat.python.cp_model import CpSolverSolutionCallback, CpSolver, IntVar, OPTIMAL, FEASIBLE
+from ortools.sat.python.cp_model import CpSolverSolutionCallback
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pd
 
 from constants import TASK_MACHINE, TASK_DURATION, TASK, START_VAR, END_VAR, PRESENCES_VAR
+from model import SolverType
 
 class IntermediateSolutionPrinter(CpSolverSolutionCallback):
     """Print intermediate solutions"""
@@ -18,7 +19,7 @@ class IntermediateSolutionPrinter(CpSolverSolutionCallback):
         print(f'Solution {self.__solution_count}, time = {self.WallTime()} s, objective = {self.ObjectiveValue()}')
         self.__solution_count += 1
 
-def print_statistics(solver: CpSolver, status: int) -> None:
+def print_statistics(solver: SolverType, status: int) -> None:
     # Solver Statistics
     print('--------------------------------')
     print('           Statistics           ')
@@ -31,16 +32,16 @@ def print_statistics(solver: CpSolver, status: int) -> None:
     print(f'  Optimal objective value: {solver.ObjectiveValue()}')
     print('--------------------------------')
     
-def print_results(solver: CpSolver, status: int, jobs: dict, obj_func: IntVar) -> None:
+def print_results(solver: SolverType, status: int, jobs: dict, obj_func: object) -> None:
     # Print the results
-    if status == OPTIMAL or status == FEASIBLE:
+    if status == solver.OPTIMAL() or status == solver.FEASIBLE():
         print('Found a Solution')
         # Print Solution
         print_optimal_solution(solver, jobs, obj_func)
     else:
         print('No Solution Found')
 
-def print_optimal_solution(solver: CpSolver, jobs: dict, obj_func: IntVar) -> None:
+def print_optimal_solution(solver: SolverType, jobs: dict, obj_func: object) -> None:
     # Print Final Solution
     for job, info in jobs.items():
         task      = info[         TASK]
@@ -59,8 +60,8 @@ def print_optimal_solution(solver: CpSolver, jobs: dict, obj_func: IntVar) -> No
     
     print(f'Objective Function: {solver.Value(obj_func)}')
 
-def print_value(solver: CpSolver, status: int, value: IntVar) -> None:
-    if status == OPTIMAL or status == FEASIBLE:
+def print_value(solver: SolverType, status: int, value: object) -> None:
+    if status == solver.OPTIMAL() or status == solver.FEASIBLE():
         print(f'{value}: {solver.Value(value)}')
 
 def visualize(solver, jobs, intervals_per_machines, makespan, overtime, horizon):

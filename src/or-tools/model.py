@@ -1,7 +1,5 @@
-from constants import TASK, MIN_START, MAX_END, START_VAR, END_VAR, DURATION_VAR, PRESENCES_VAR
-
-from ortools.sat.python.cp_model import CpModel as OR_CpModel, CpSolver as OR_CpSolver
-from docplex.cp.model import CpoModel as DOC_CpModel, CpoSolver as DOC_CpSolver, CpoParameters as DOC_CpoParameters, CpoSolverInfos
+from ortools.sat.python.cp_model import CpModel as OR_CpModel, CpSolver as OR_CpSolver, OPTIMAL, FEASIBLE
+from docplex.cp.model import CpoModel as DOC_CpModel, CpoSolver as DOC_CpSolver, CpoParameters as DOC_CpoParameters, SOLVE_STATUS_FEASIBLE, SOLVE_STATUS_OPTIMAL
 
 DOCPLEX = "DOcplex"
 ORTOOLS = "OR-Tools"
@@ -180,3 +178,15 @@ class SolverType:
         else:
             self.solver.parameters.max_time_in_seconds = time_out_in_seconds
         return
+    
+    def OPTIMAL(self):
+        if self.solver_type == DOCPLEX:
+            return SOLVE_STATUS_OPTIMAL
+        else:
+            return OPTIMAL
+    
+    def FEASIBLE(self):
+        if self.solver_type == DOCPLEX:
+            return SOLVE_STATUS_FEASIBLE
+        else:
+            return FEASIBLE
