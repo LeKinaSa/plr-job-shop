@@ -6,7 +6,7 @@ from data import get_data
 from output import IntermediateSolutionPrinter as SolutionPrinter, print_statistics, print_results, print_value, visualize
 from constants import TASK, MIN_START, MAX_END, START_VAR, END_VAR, DURATION_VAR, PRESENCES_VAR, JOBS, HORIZON, NORMAL_TIME, OVER_TIME
 
-def jobshop(solver_type: int = 0, filename: str = 'data/fab.json', time_out_in_seconds: int = 15, log: bool = True) -> tuple:
+def jobshop(solver_type: int = 0, filename: str = 'data/fab.json', time_out_in_seconds: int = 15, log: bool = True, test: bool = False) -> tuple:
     data = get_data(filename)
     (jobs, horizon, normal_time, over_time) = (data[JOBS], data[HORIZON], data[NORMAL_TIME], data[OVER_TIME])
     work_week = normal_time + over_time
@@ -87,13 +87,17 @@ def jobshop(solver_type: int = 0, filename: str = 'data/fab.json', time_out_in_s
     status = solver.Solve(model, solution_printer)
     
     # Print Results
-    if log:
-        print_statistics(solver, status)
-        print_results(solver, status, jobs, overtime)
-        print_value(solver, status, makespan)
-        visualize(solver, jobs, intervals_per_machines, makespan, overtime, horizon)
+    if test:
+        if log:
+            print_statistics(solver, status)
+            print_results(solver, status, jobs, overtime)
+            print_value(solver, status, makespan)
+        else:
+            print(solver.StatusName(status))
     else:
-        print(solver.StatusName(status))
+        if log:
+            print_statistics(solver, status)
+        visualize(solver, status, jobs, intervals_per_machines, makespan, overtime, horizon)
     return (solver, status)
 
 def get_overtime(model: SolverType, jobs: dict, horizon: int, max_total_time: dict,

@@ -64,7 +64,10 @@ def print_value(solver: SolverType, status: int, value: object) -> None:
     if status == solver.OPTIMAL() or status == solver.FEASIBLE():
         print(f'{value}: {solver.Value(value)}')
 
-def visualize(solver, jobs, intervals_per_machines, makespan, overtime, horizon):
+def visualize(solver, status, jobs, intervals_per_machines, makespan, overtime, horizon):
+    if status != solver.OPTIMAL() and status != solver.FEASIBLE():
+        return
+
     results = []
     for job in jobs:
         job_info = {}
@@ -85,11 +88,13 @@ def visualize(solver, jobs, intervals_per_machines, makespan, overtime, horizon)
     makespan = solver.Value(makespan)
     overtime = solver.Value(overtime)
     
+    print(f'Makespan: {makespan}')
+    print(f'Overtime: {overtime}')
+    
     schedule.sort_values(by=['Job', 'Start'])
     schedule.set_index(['Job', 'Machine'], inplace=True)
 
     colors = mpl.cm.Dark2.colors
-    print(len(colors), len(colors[0]))
     
     figure, plot = plt.subplots()
     plot.grid(True)
@@ -98,7 +103,7 @@ def visualize(solver, jobs, intervals_per_machines, makespan, overtime, horizon)
     plot.set_xlabel('Time')
     plot.set_ylabel('Machine')
     
-    plot.set_xlim(0, horizon)
+    plot.set_xlim(0, horizon + 1) # TODO: check
     plot.set_ylim(0.5, len(machines) + 0.5)
     plot.set_yticks(machines)
     plot.set_yticklabels(machines)
