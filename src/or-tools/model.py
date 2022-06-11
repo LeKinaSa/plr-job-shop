@@ -132,8 +132,9 @@ class SolverType:
     # Solve
     def Solve(self, model, solution_printer=None):
         if self.solver_type == DOCPLEX:
-            self.info = CpoSolverInfos()
-            return self.solver.solve(self.info)
+            self.result = self.solver.solve()
+            self.info = self.result.get_solver_infos()
+            return self.result
         else:
             return self.solver.Solve(model.model, solution_printer)
     
@@ -151,25 +152,25 @@ class SolverType:
 
     def WallTime(self):
         if self.solver_type == DOCPLEX:
-            return self.solver.get_solve_time()
+            return self.info.get_solve_time()
         else:
             return self.solver.WallTime()
     
     def StatusName(self, status):
         if self.solver_type == DOCPLEX:
-            return self.solver.get_solve_status()
+            return self.result.get_solve_status()
         else:
             return self.solver.StatusName(status)
     
     def ObjectiveValue(self):
         if self.solver_type == DOCPLEX:
-            return self.solution.get_objective_value()
+            return self.result.get_objective_value()
         else:
             return self.solver.ObjectiveValue()
     
     def Value(self, variable):
         if self.solver_type == DOCPLEX:
-            return self.solver.get_var_solution(variable) # TODO: verify
+            return self.result.get_var_solution(variable) # TODO: verify
         else:
             return self.solver.Value(variable)
 
