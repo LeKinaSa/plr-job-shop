@@ -3,7 +3,7 @@ from model import SolverType
 
 
 from data import get_data
-from output import IntermediateSolutionPrinter as SolutionPrinter, print_statistics, print_results, print_value
+from output import IntermediateSolutionPrinter as SolutionPrinter, print_statistics, print_results, print_value, visualize
 from constants import TASK, MIN_START, MAX_END, START_VAR, END_VAR, DURATION_VAR, PRESENCES_VAR, JOBS, HORIZON, NORMAL_TIME, OVER_TIME
 
 def jobshop(solver_type: int = 0, filename: str = 'data/fab.json', time_out_in_seconds: int = 15, log: bool = True) -> tuple:
@@ -89,8 +89,9 @@ def jobshop(solver_type: int = 0, filename: str = 'data/fab.json', time_out_in_s
     # Print Results
     if log:
         print_statistics(solver, status)
-        print_results(solver, status, jobs, makespan)
-        print_value(solver, status, overtime)
+        print_results(solver, status, jobs, overtime)
+        print_value(solver, status, makespan)
+        visualize(solver, jobs, intervals_per_machines, makespan, overtime, horizon)
     else:
         print(solver.StatusName(status))
     return (solver, status)
