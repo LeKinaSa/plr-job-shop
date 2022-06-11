@@ -34,8 +34,8 @@ def generator():
     for percent_alt_machines in range(0, 101, 10): # default: 75
         generate(percent_alt_machines=percent_alt_machines)
     
-    for medium_size_task in [10, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1250, 1500, 2000, 2500]: # default: 50
-        generate(medium_size_task=medium_size_task)
+    for average_size_task in [10, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1250, 1500, 2000, 2500]: # default: 50
+        generate(average_size_task=average_size_task)
     for production_range in [1, 2, 3, 4, 5] + list(range(6, 21, 2)): # default: 2
         generate(production_range=production_range)
     
@@ -46,32 +46,32 @@ def generator():
 
 def generate(n_jobs: int = 75, percent_alt_jobs: int = 50,
             n_machines: int = 4, percent_alt_machines: int = 75,
-            medium_size_task: int = 50, production_range: int = 2,
+            average_size_task: int = 50, production_range: int = 2,
             time_usage: int = 80, over_time_hours: int = 8, normal_time_hours: int = 40) -> None:
     global random_seed
 
     jobs_with_alts =        floor(n_jobs     * percent_alt_jobs     / 100)
     n_alts_per_job = max(1, floor(n_machines * percent_alt_machines / 100))
-    horizon        = n_jobs * medium_size_task
+    horizon        = n_jobs * average_size_task
     normal_time    = (int) (normal_time_hours * 60 * time_usage / 100)
     over_time      = (int) (over_time_hours   * 60 * time_usage / 100)
     
-    jobs = generate_jobs(n_jobs, jobs_with_alts, n_alts_per_job, n_machines, medium_size_task, production_range, horizon)
+    jobs = generate_jobs(n_jobs, jobs_with_alts, n_alts_per_job, n_machines, average_size_task, production_range, horizon)
     while not solvable(deepcopy(jobs), horizon):
-        print(f'Repeated: {n_jobs}-{percent_alt_jobs}-{n_machines}-{percent_alt_machines}-{medium_size_task}-{production_range}-{time_usage}-{over_time_hours}')
+        print(f'Repeated: {n_jobs}-{percent_alt_jobs}-{n_machines}-{percent_alt_machines}-{average_size_task}-{production_range}-{time_usage}-{over_time_hours}')
         random_seed += 1
-        jobs = generate_jobs(n_jobs, jobs_with_alts, n_alts_per_job, n_machines, medium_size_task, production_range, horizon)
+        jobs = generate_jobs(n_jobs, jobs_with_alts, n_alts_per_job, n_machines, average_size_task, production_range, horizon)
     
-    save(jobs, n_machines, normal_time, over_time, horizon, f'{n_jobs}-{percent_alt_jobs}-{n_machines}-{percent_alt_machines}-{medium_size_task}-{production_range}-{time_usage}-{over_time_hours}')
+    save(jobs, n_machines, normal_time, over_time, horizon, f'{n_jobs}-{percent_alt_jobs}-{n_machines}-{percent_alt_machines}-{average_size_task}-{production_range}-{time_usage}-{over_time_hours}')
 
 def generate_jobs(n_jobs: int, jobs_with_alts: int, n_alts_per_job: int, n_machines: int,
-                  medium_size_task: int, production_range: int, horizon: int) -> dict:
+                  average_size_task: int, production_range: int, horizon: int) -> dict:
     global random_seed
     random = Random()
     random.seed(random_seed)
     
     available_machines = list(range(1, n_machines + 1))
-    standard_deviation = medium_size_task / 4
+    standard_deviation = average_size_task / 4
     
     jobs = {} # (130, {'task': [(2, 8036)], 'min_start': 0, 'max_end': 62587})
     for job in range(n_jobs):
@@ -80,14 +80,14 @@ def generate_jobs(n_jobs: int, jobs_with_alts: int, n_alts_per_job: int, n_machi
         if jobs_with_alts > 0:
             alt_machines = random.sample(available_machines, n_alts_per_job)
             for alt_machine in alt_machines:
-                alt_duration = max(1, (int) (random.gauss(medium_size_task, standard_deviation)))
+                alt_duration = max(1, (int) (random.gauss(average_size_task, standard_deviation)))
                 t = [0, 0]
                 (t[TASK_MACHINE], t[TASK_DURATION]) = (alt_machine, alt_duration)
                 jobs[job][TASK].append(tuple(t))
             jobs_with_alts -= 1
         else:
             alt_machine = random.choice(available_machines)
-            alt_duration = max(1, (int)(random.gauss(medium_size_task, standard_deviation)))
+            alt_duration = max(1, (int)(random.gauss(average_size_task, standard_deviation)))
             t = [0, 0]
             (t[TASK_MACHINE], t[TASK_DURATION]) = (alt_machine, alt_duration)
             jobs[job][TASK].append(tuple(t))
