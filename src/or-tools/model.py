@@ -29,7 +29,7 @@ class SolverType:
     # Int Var
     def NewIntVar(self, min, max, id):
         if self.solver_type == DOCPLEX:
-            return self.model.integer_var(min, max, id) # check arguments
+            return self.model.integer_var(min, max, id)
         else: # OR-Tools
             return self.model.NewIntVar(min, max, id)
 
@@ -62,15 +62,14 @@ class SolverType:
     # Only Enforce If
     def OnlyEnforceIf(self, constraint, alt_present):
         if self.solver_type == DOCPLEX:
-            self.model = DOC_CpModel()
-            return self.model.if_then(alt_present == 1, constraint) # TODO check
+            return self.model.if_then(alt_present == 1, constraint)
         else: # OR-Tools
             return self.model.Add(constraint).OnlyEnforceIf(alt_present)
 
     # Add Exactly One
     def AddExactlyOne(self, l):
         if self.solver_type == DOCPLEX:
-            return self.model.add_constraint(self.model.equal(self.model.sum(l), 1))
+            return self.model.add(self.model.sum_of(l) == 1)
         else: # OR-Tools
             return self.model.AddExactlyOne(l)
 
@@ -168,7 +167,7 @@ class SolverType:
     
     def Value(self, variable):
         if self.solver_type == DOCPLEX:
-            return self.result.get_var_solution(variable) # TODO: verify
+            return self.result.get_var_solution(variable)
         else:
             return self.solver.Value(variable)
 
