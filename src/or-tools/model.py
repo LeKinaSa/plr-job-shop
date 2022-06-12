@@ -63,7 +63,7 @@ class SolverType:
     # Only Enforce If
     def OnlyEnforceIf(self, constraint, alt_present):
         if self.solver_type == DOCPLEX:
-            return self.model.if_then(alt_present == 1, constraint)
+            return self.model.add(self.model.if_then(alt_present == 1, constraint))
         else: # OR-Tools
             return self.model.Add(constraint).OnlyEnforceIf(alt_present)
 
@@ -77,7 +77,7 @@ class SolverType:
     # Add No Overlap
     def AddNoOverlap(self, intervals):
         if self.solver_type == DOCPLEX:
-            return self.model.no_overlap(intervals)
+            return self.model.add(self.model.no_overlap(intervals))
         else: # OR-Tools
             return self.model.AddNoOverlap(intervals)
 
