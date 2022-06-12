@@ -7,8 +7,10 @@
 
 % job shop problem
 j :- jobshop.
-jobshop :- jobshop(10000, _, _, _, _, _).
+jobshop :- jobshop(100000, _, _, _, _, _).
 jobshop(Timeout, Branches, Conflicts, Overtime, Status, Time) :-
+    jobshop(Timeout, Branches, Conflicts, Overtime, Status, Time, []).
+jobshop(Timeout, Branches, Conflicts, Overtime, Status, Time, SearchStrategies) :-
     reset_timer,
 
     % Jobs and Horizon (Data)
@@ -26,14 +28,13 @@ jobshop(Timeout, Branches, Conflicts, Overtime, Status, Time) :-
     task_duration(                      Tasks, Chosen, Start, End, Duration),
     only_one_task_per_machine_at_a_time(Tasks, Chosen, Start, End),
     task_interval(                      Tasks,         Start, End),
-    % eliminate_symmetries(               Tasks, Chosen, Start),
 
     % Solve
-    % get_latest_finish( End, ObjFunc),
     get_overtime_used(Start, End, Duration, Overtime),
     append(Start  , End   , VarsAux),
     append(Chosen, VarsAux, Vars   ),
-    labeling([minimize(Overtime), time_out(Timeout, Status), assumptions(Branches)], Vars),
+    append([minimize(Overtime), time_out(Timeout, Status), assumptions(Branches)], SearchStrategies, Options),
+    labeling(Options, Vars),
 
     % Print
     print(Tasks, Start, End, Chosen, Horizon, Overtime),

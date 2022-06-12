@@ -21,7 +21,7 @@ class SolverType:
 
     def CpSolver(self):
         if self.solver_type == DOCPLEX:
-            self.solver = DOC_CpSolver(self.model)
+            self.solver = DOC_CpSolver(self.model, LogVerbosity='Quiet')
         else:
             self.solver = OR_CpSolver()
         return self
@@ -63,7 +63,7 @@ class SolverType:
     # Only Enforce If
     def OnlyEnforceIf(self, constraint, alt_present):
         if self.solver_type == DOCPLEX:
-            return self.model.if_then(alt_present == 1, constraint)
+            return self.model.add(self.model.if_then(alt_present == 1, constraint))
         else: # OR-Tools
             return self.model.Add(constraint).OnlyEnforceIf(alt_present)
 
@@ -77,7 +77,7 @@ class SolverType:
     # Add No Overlap
     def AddNoOverlap(self, intervals):
         if self.solver_type == DOCPLEX:
-            return self.model.no_overlap(intervals)
+            return self.model.add(self.model.no_overlap(intervals))
         else: # OR-Tools
             return self.model.AddNoOverlap(intervals)
 
@@ -174,7 +174,8 @@ class SolverType:
 
     def MaxTimeInSeconds(self, time_out_in_seconds):
         if self.solver_type == DOCPLEX:
-            self.model.set_parameters(DOC_CpoParameters(TimeLimit=time_out_in_seconds))
+            self.time_limit = time_out_in_seconds
+            self.solver = DOC_CpSolver(self.model, LogVerbosity='Quiet', TimeLimit=time_out_in_seconds)
         else:
             self.solver.parameters.max_time_in_seconds = time_out_in_seconds
         return
