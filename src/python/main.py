@@ -84,7 +84,7 @@ def jobshop(solver_type: int = 0, filename: str = 'data/fab.json', time_out_in_s
     solver = s.CpSolver()
     solver.MaxTimeInSeconds(time_out_in_seconds)
     if search_strategies[0]:
-        search_strategies[1](model, solver, intervals_per_machines)
+        search_strategies[1](model, solver, starts)
     solution_printer = SolutionPrinter() if log else None
     status = solver.Solve(model, solution_printer)
     
