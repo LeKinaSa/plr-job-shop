@@ -97,6 +97,7 @@ def jobshop(solver_type: int = 0, filename: str = 'data/fab.json', time_out_in_s
     else:
         if log:
             print_statistics(solver, status)
+        print_results(solver, status, jobs, overtime)
         visualize(solver, status, jobs, intervals_per_machines, makespan, overtime, horizon)
     return (solver, status)
 

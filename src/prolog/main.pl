@@ -7,7 +7,7 @@
 
 % job shop problem
 j :- jobshop.
-jobshop :- jobshop(10000, _, _, _, _, _).
+jobshop :- jobshop(100000, _, _, _, _, _).
 jobshop(Timeout, Branches, Conflicts, Overtime, Status, Time) :-
     reset_timer,
 
