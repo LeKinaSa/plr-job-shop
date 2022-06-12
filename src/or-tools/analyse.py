@@ -1,3 +1,6 @@
+from ortools.sat.python import cp_model as ortools
+from docplex.cp import model as docplex
+
 from os.path import exists
 from os import makedirs
 
@@ -40,21 +43,46 @@ def analyser(solver_type: int = 0):
 
     for time_out in range(1, 301):
         analyse(time_out=time_out, solver_type=solver_type)
+    enter_files()
+
+    analyse_search_strategies(solver_type)
 
 def analyse(n_jobs: int = 75, percent_alt_jobs: int = 50,
             n_machines: int = 4, percent_alt_machines: int = 75,
             average_size_task: int = 50, production_range: int = 2,
             time_usage: int = 80, over_time_hours: int = 8,
-            time_out: int = 15, solver_type: int = 0):
+            time_out: int = 15, solver_type: int = 0,
+            search_strategies = (False, None)):
 
     filename = f'{n_jobs}-{percent_alt_jobs}-{n_machines}-{percent_alt_machines}-{average_size_task}-{production_range}-{time_usage}-{over_time_hours}'
-    (solver, status) = jobshop(solver_type, f'data/simulated/{filename}.json', time_out, False, True)
+    (solver, status) = jobshop(solver_type, f'data/simulated/{filename}.json', time_out, False, True, search_strategies)
     s = SolverType(solver_type)
     if status == s.OPTIMAL() or status == s.FEASIBLE():
         save_files(solver, status, solver_type)
     else:
         s = 'OR-Tools' if solver_type == 0 else 'DOcplex'
         print(f'Problem! File {filename} with solver {s}')
+
+def analyse_search_strategies(solver_type):
+    def ortools_ss(model, solver, intervals, var_strategy, value_strategy):
+        model.model.AddDecisionStrategy(intervals, var_strategy, value_strategy)
+        solver.solver.parameters.search_branching = ortools.FIXED_SEARCH
+    
+    all_ortools_ss = [
+        lambda m, s, i: ortools_ss(m, s, i, ortools.CHOOSE_FIRST          , ortools.SELECT_MIN_VALUE),
+        lambda m, s, i: ortools_ss(m, s, i, ortools.CHOOSE_MIN_DOMAIN_SIZE, ortools.SELECT_MIN_VALUE),
+        lambda m, s, i: ortools_ss(m, s, i, ortools.CHOOSE_FIRST          , ortools.SELECT_MAX_VALUE),
+        lambda m, s, i: ortools_ss(m, s, i, ortools.CHOOSE_MIN_DOMAIN_SIZE, ortools.SELECT_MAX_VALUE), 
+    ]
+
+    all_docplex_ss = [
+        lambda m, s, i: m.model.select_smallest(m.model.domain_size()),
+        lambda m, s, i: m.model.select_largest (m.model.var_impact()),
+    ]
+
+    possible_search_strategies = all_ortools_ss if solver_type == 0 else all_docplex_ss
+    for ss in possible_search_strategies:
+        analyse(solver_type=solver_type, search_strategies=(True, ss))
 
 def start_files(path: str) -> None:
     global files
