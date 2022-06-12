@@ -6,7 +6,7 @@ from model import SolverType
 
 files = ['conflicts', 'branches', 'wall_time', 'status', 'obj_value']
 ORTOOLS_PATH = 'data/statistics/ortools/'
-PROLOG_PATH  = 'data/statistics/prolog/'
+SPROLOG_PATH = 'data/statistics/prolog/'
 DOCPLEX_PATH = 'data/statistics/docplex/'
 
 def analyser():
@@ -38,7 +38,7 @@ def analyser():
         analyse(over_time_hours=over_time_hours)
     enter_files()
 
-    for time_out in range(1, 500):
+    for time_out in range(1, 301):
         analyse(time_out=time_out)
 
 def analyse(n_jobs: int = 75, percent_alt_jobs: int = 50,
@@ -79,9 +79,9 @@ def save_files(solver: SolverType, status: int, solver_type: int) -> None:
             file.write(f', {info}')
 
 if __name__ == '__main__':
-    if not exists(PROLOG_PATH):
-        makedirs(PROLOG_PATH)
-        start_files(PROLOG_PATH)
+    if not exists(SPROLOG_PATH):
+        makedirs(SPROLOG_PATH)
+        start_files(SPROLOG_PATH)
     else:
         if not exists(ORTOOLS_PATH):
             makedirs (ORTOOLS_PATH)
