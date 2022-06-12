@@ -84,13 +84,18 @@ if __name__ == '__main__':
     else:
         if not exists(ORTOOLS_PATH):
             makedirs (ORTOOLS_PATH)
+        start_files(ORTOOLS_PATH)
+
+        if exists('data/simulated'):
+            analyser(0) # OR-Tools
+        else:
+            print('No files to analyse!')
+
         if not exists(DOCPLEX_PATH):
             makedirs (DOCPLEX_PATH)
-        start_files(ORTOOLS_PATH)
         start_files(DOCPLEX_PATH)
         
         if exists('data/simulated'):
-            analyser(0) # OR-Tools
             analyser(1) # DOcplex
         else:
             print('No files to analyse!')
