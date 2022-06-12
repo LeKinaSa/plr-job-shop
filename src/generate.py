@@ -186,5 +186,3 @@ if __name__ == '__main__':
     if not exists('data/simulated'):
         makedirs('data/simulated')
     generator()
-
-    print(solvable(jobs, 20*2304))

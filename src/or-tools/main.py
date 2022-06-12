@@ -1,6 +1,6 @@
+import sys
 
 from model import SolverType
-
 
 from data import get_data
 from output import IntermediateSolutionPrinter as SolutionPrinter, print_statistics, print_results, print_value, visualize
@@ -156,5 +156,11 @@ def get_overtime(model: SolverType, jobs: dict, horizon: int, max_total_time: di
     return overtime
 
 if __name__ == '__main__':
-    jobshop(1, 'data/simulated/5-50-4-75-50-2-80-8.json')
-    jobshop(0, 'data/simulated/5-50-4-75-50-2-80-8.json')
+    l = sys.argv[1:]
+    if len(l) == 1:
+        if l[0] == 1:
+            jobshop(1)
+        else:
+            jobshop(0)
+    else:
+        jobshop(0)
