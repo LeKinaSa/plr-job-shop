@@ -30,16 +30,20 @@ LOG = True
 def get_data() -> tuple:
     # Data Constants
     FILE = 'data/raw/oi_22_23.xlsx'
-    TIMES_SHEET = 'times'
-    TIMES_MODEL_COLUMN = 1
-    TIMES_TIME_COLUMN  = 2
-    LINES_SHEET = 'lines'
-    LINES_LINE_COLUMN     = 1
-    LINES_CAPACITY_COLUMN = 2
-    LINES_MODELS_COLUMN   = 3
-    TOTAL_SHEET = 'total'
-    TOTAL_MODELS_COLUMN = 1
-    TOTAL_TOTALS_COLUMN = 3
+    TIMES_SHEET            = 'times'
+    TIMES_MODEL_COLUMN     = 1
+    TIMES_TIME_COLUMN      = 2
+    PRODUCTION_RANGE_SHEET = 'dates'
+    RANGE_MODEL_COLUMN     = 1
+    RANGE_START_COLUMN     = 2
+    RANGE_END_COLUMN       = 3
+    LINES_SHEET            = 'lines'
+    LINES_LINE_COLUMN      = 1
+    LINES_CAPACITY_COLUMN  = 2
+    LINES_MODELS_COLUMN    = 3
+    TOTAL_SHEET            = 'total'
+    TOTAL_MODELS_COLUMN    = 1
+    TOTAL_TOTALS_COLUMN    = 3
     
     # Prepare Data
     workbook = excel.load_workbook(FILE)
@@ -53,7 +57,17 @@ def get_data() -> tuple:
     for row in range(2, n_rows + 1):
         model      = sheet.cell(row, TIMES_MODEL_COLUMN).value
         time_taken = sheet.cell(row, TIMES_TIME_COLUMN ).value
-        models[model] = { PRODUCTION_TIME : time_taken, MODEL_TOTALS: 0, MIN_START: 0, MAX_END: 100000} # TODO: min_start + max_end
+        models[model] = { PRODUCTION_TIME : time_taken, MODEL_TOTALS: 0, MIN_START: 0, MAX_END: 0}
+    
+    # Production Range
+    sheet = workbook[PRODUCTION_RANGE_SHEET]
+    n_rows = sheet.max_row
+    for row in range(2, n_rows):
+        model     = sheet.cell(row, RANGE_MODEL_COLUMN).value
+        min_start = sheet.cell(row, RANGE_START_COLUMN).value
+        max_end   = sheet.cell(row, RANGE_END_COLUMN  ).value
+        models[model][MIN_START] = min_start
+        models[model][MAX_END  ] = max_end
     
     # Lines
     sheet = workbook[LINES_SHEET]
