@@ -24,6 +24,7 @@ PROLOG_DATA_FILE  = 'data/fab.pl'
 CPLEX_DATA_FILE   = 'data/fab.dat'
 
 LOG = True
+WORK_WEEK = 2304
 
 ######################### Real Data #########################
 
@@ -64,8 +65,8 @@ def get_data() -> tuple:
     n_rows = sheet.max_row
     for row in range(2, n_rows):
         model     = sheet.cell(row, RANGE_MODEL_COLUMN).value
-        min_start = sheet.cell(row, RANGE_START_COLUMN).value
-        max_end   = sheet.cell(row, RANGE_END_COLUMN  ).value
+        min_start = sheet.cell(row, RANGE_START_COLUMN).value * WORK_WEEK
+        max_end   = sheet.cell(row, RANGE_END_COLUMN  ).value * WORK_WEEK
         models[model][MIN_START] = min_start
         models[model][MAX_END  ] = max_end
     

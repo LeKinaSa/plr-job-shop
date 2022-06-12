@@ -7,7 +7,7 @@ from math import floor
 from copy import deepcopy
 from random import Random
 
-from prepare import save_data
+from prepare import save_data, get_data, get_jobs
 
 TASK_MACHINE  = 0
 TASK_DURATION = 1
@@ -174,7 +174,17 @@ def save(jobs: dict, machines: int, normal_time: int, over_time: int, horizon: i
     save_data(jobs, machines, horizon, normal_time, over_time, file + '.json', file + '.pl', file + '.dat')
 
 if __name__ == '__main__':
+    ### Real Data
+    # Get Data
+    (models, lines) = get_data()
+    jobs = get_jobs(models, lines)
+
+    # Save Data
+    save_data(jobs, len(lines))
+
+    ### Generate Simulated Data
     if not exists('data/simulated'):
         makedirs('data/simulated')
     generator()
-    # generate(5, 50, 4, 75, 50, 2, 80, 8)
+
+    print(solvable(jobs, 20*2304))
