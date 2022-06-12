@@ -25,6 +25,9 @@ for ortools_file, sprolog_file, docplex_file, filename in zip(ortools_files, spr
         test_info[test]['sprolog_' + filename] = sprolog_file.readline().strip('\n').split(',')[1:]
         test_info[test]['docplex_' + filename] = docplex_file.readline().strip('\n').split(',')[1:]
 
+for f in ortools_files + sprolog_files + docplex_files:
+    f.close()
+
 for test in tests:
     test_info[test] = pd.DataFrame.from_dict(test_info[test])
 
