@@ -158,7 +158,7 @@ def get_overtime(model: SolverType, jobs: dict, horizon: int, max_total_time: di
 if __name__ == '__main__':
     l = sys.argv[1:]
     if len(l) == 1:
-        if l[0] == 1:
+        if l[0] == '1':
             jobshop(1)
         else:
             jobshop(0)
