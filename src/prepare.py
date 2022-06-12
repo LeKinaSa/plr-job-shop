@@ -229,11 +229,19 @@ def statistics(jobs: dict, models: dict) -> None:
     job_tasks     = list(map(n_production_lines, jobs.items()))
     only_one_line = list(map(lambda x: x[1], filter(lambda job: job[0] == 1, job_tasks)))
     both_lines    = list(map(lambda x: x[1], filter(lambda job: job[0] == 2, job_tasks)))
+    prod_lines    = list(map(lambda x: 3 if len(x[TASK]) > 1 else x[TASK][0][TASK_MACHINE], jobs.values()))
+    task_sizes    = []
+    for j in jobs.values():
+        tasks = j[TASK]
+        task_sizes.append(tasks[0][TASK_DURATION])
+        if len(tasks) > 1:
+            task_sizes.append(tasks[1][TASK_DURATION])
 
     print()
     print(f'Number of Different Products: {len(job_tasks)}')
     print(f'Number of Products that can only be produced in 1 line: {len(only_one_line)} - {sum(only_one_line)}')
     print(f'Number of Products that can be produced in both lines:  {len(both_lines   )} - {sum(both_lines   )}')
+    print(f'Number of products per production line: {len(list(filter(lambda x: x == 1, prod_lines)))} - {len(list(filter(lambda x: x == 2, prod_lines)))} - {len(list(filter(lambda x: x == 3, prod_lines)))}')
 
     min_units = min(min(only_one_line), min(both_lines))
     max_units = max(max(only_one_line), max(both_lines))
@@ -242,7 +250,7 @@ def statistics(jobs: dict, models: dict) -> None:
     task_durations = map(get_duration, jobs.values())
     durations = [alt_task_duration for alt_task_durations in task_durations for alt_task_duration in alt_task_durations]
     
-    print(f'Product Duration : [{min(durations)}, {max(durations)}]')
+    print(f'Product Duration : [{min(durations)}, {max(durations)}] → Average: {sum(task_sizes) / len(task_sizes)}')
 
 def model_statistics(jobs: dict, models: dict, id: int) -> None:
     print()

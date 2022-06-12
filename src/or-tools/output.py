@@ -91,29 +91,40 @@ def visualize(solver, status, jobs, intervals_per_machines, makespan, overtime, 
     print(f'Makespan: {makespan}')
     print(f'Overtime: {overtime}')
     
-    schedule.sort_values(by=['Job', 'Start'])
+    schedule.sort_values(by=['Machine', 'Start'])
     schedule.set_index(['Job', 'Machine'], inplace=True)
 
-    colors = mpl.cm.Dark2.colors
-    
+    colors = ['#130d5c', '#540364', '#850065',
+              '#af005e', '#d12953', '#ea5045',
+              '#fa7734', '#ffa022', '#d79c04',
+              '#b19500', '#8d8c00', '#6c8205',
+              '#4c7614', '#2d691e', '#025c24',
+              '#005638', '#004f4d', '#004761',
+              '#003e70', '#003375', '#00256f']
+
     figure, plot = plt.subplots()
+    figure.set_size_inches((22, 11))
     plot.grid(True)
     
     plot.set_title('Schedule')
     plot.set_xlabel('Time')
     plot.set_ylabel('Machine')
     
-    plot.set_xlim(0, horizon + 1) # TODO: check
+    plot.set_xlim(0, horizon + 1)
     plot.set_ylim(0.5, len(machines) + 0.5)
     plot.set_yticks(machines)
     plot.set_yticklabels(machines)
 
-    for job_index, job in enumerate(jobs):
-        for machine_index, machine in enumerate(machines, 1):
+    for machine_index, machine in enumerate(machines, 1):
+        offset = 1
+        for job_index, job in enumerate(jobs):
             if (job, machine) in schedule.index:
                 x_start  = schedule.loc[(job, machine), 'Start']
                 x_finish = schedule.loc[(job, machine), 'Finish']
-                plot.broken_barh([(x_start, x_finish)], (machine_index - 0.4, 0.8), facecolors=colors[job_index % (len(colors) - 1)])
+                plot.broken_barh([(x_start, x_finish - x_start)], (machine_index - 0.4, 0.8), facecolors=colors[job_index % len(colors)])
+                text_offset = 0.41 if offset > 0 else -0.43
+                plot.text((x_start + x_finish) / 2, machine_index + text_offset, job, rotation = 90, size = 6)
+                offset = -offset
 
     figure.tight_layout()
-    plt.show()
+    plt.savefig('solution.png', dpi=960)
