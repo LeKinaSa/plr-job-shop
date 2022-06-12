@@ -7,7 +7,7 @@
 
 % job shop problem
 j :- jobshop.
-jobshop :- jobshop(100000, _, _, _, _, _).
+jobshop :- jobshop(15000, _, _, _, _, _).
 jobshop(Timeout, Branches, Conflicts, Overtime, Status, Time) :-
     jobshop(Timeout, Branches, Conflicts, Overtime, Status, Time, []).
 jobshop(Timeout, Branches, Conflicts, Overtime, Status, Time, SearchStrategies) :-
