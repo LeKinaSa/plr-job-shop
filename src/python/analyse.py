@@ -76,6 +76,7 @@ def analyse_search_strategies(solver_type):
     ]
 
     all_docplex_ss = [
+        lambda m, s, i: (),
         lambda m, s, i: m.model.select_smallest(m.model.domain_size()),
         lambda m, s, i: m.model.select_largest (m.model.var_impact()),
     ]
